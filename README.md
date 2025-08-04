@@ -6,7 +6,6 @@
   <p>틱톡, 인스타 릴스처럼 짧은 영상을 공유하고 감상하는 감각적인 웹 앱</p>
 
  <img src="https://img.shields.io/badge/Tech-Next.js%20|%20React%20|%20Recoil%20|%20styled--components-blue" alt="Tech Stack" />
-<img src="https://img.shields.io/github/last-commit/your-username/zanchi-frontend" alt="Last Commit" />
 
 </div>
 
