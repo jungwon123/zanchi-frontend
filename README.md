@@ -2,13 +2,12 @@
 멋쟁이 사자처럼 13기 중앙해커톤 골목대장(잔치)
 
 <div align="center">
-  <img src="https://your-banner-image-url.com/zanchi-banner.png" alt="Zanchi Banner" width="100%" />
-
   <h1>🎥 ZANCHI: 짧은 순간이 모이는 공간</h1>
   <p>틱톡, 인스타 릴스처럼 짧은 영상을 공유하고 감상하는 감각적인 웹 앱</p>
 
-  <img src="https://img.shields.io/github/languages/top/your-username/zanchi-frontend?color=blue" />
-  <img src="https://img.shields.io/github/last-commit/your-username/zanchi-frontend" />
+ <img src="https://img.shields.io/badge/Tech-Next.js%20|%20React%20|%20Recoil%20|%20styled--components-blue" alt="Tech Stack" />
+<img src="https://img.shields.io/github/last-commit/your-username/zanchi-frontend" alt="Last Commit" />
+
 </div>
 
 ---
