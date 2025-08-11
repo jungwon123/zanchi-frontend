@@ -11,7 +11,7 @@ export default function BottomMeta({ profile = { name: "사용자", following: f
           {!profile.following && (<FollowBadge>팔로우</FollowBadge>)}
           </div>
           <ActionItem>
-          <ActionButton aria-label="more">⋯</ActionButton>
+          <ActionButton aria-label="more" $src="/icon/tabler_dots.png" style={{ backgroundSize: "22px 22px" }}></ActionButton>
         </ActionItem>
         </MetaHeaderRow>
         

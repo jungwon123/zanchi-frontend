@@ -22,4 +22,14 @@ export const activeTabState = atom({
   default: "recommend", // 'recommend' | 'following'
 });
 
+export const commentsOpenState = atom({
+  key: "commentsOpenState",
+  default: false,
+});
+
+export const shareOpenState = atom({
+  key: "shareOpenState",
+  default: false,
+});
+
 

@@ -4,7 +4,7 @@ import styled, { createGlobalStyle } from "styled-components";
 
 export const GlobalStyle = createGlobalStyle`
   :root {
-    --app-bg: transparent;
+    --app-bg: #000;
     --app-fg: #ffffff;
   }
   html, body {

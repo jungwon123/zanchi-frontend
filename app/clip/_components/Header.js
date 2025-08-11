@@ -13,8 +13,8 @@ export default function Header() {
         <TabButton onClick={() => setTab("following")} $active={tab === "following"}>팔로잉</TabButton>
       </HeaderTabs>
       <HeaderActions>
-        <IconButton aria-label="search">🔍</IconButton>
-        <IconButton aria-label="notifications">🔔</IconButton>
+        <IconButton aria-label="search" $src="/icon/search.png" onClick={() => window.location.href = '/search'} />
+        <IconButton aria-label="notifications" $src="/icon/bell.png" />
       </HeaderActions>
     </HeaderBar>
   );
