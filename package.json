@@ -1,0 +1,27 @@
+{
+  "name": "zanchi-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.84.2",
+    "axios": "^1.11.0",
+    "hls.js": "^1.6.9",
+    "next": "14.2.15",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "recoil": "^0.7.7",
+    "styled-components": "^6.1.19"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.15",
+    "tailwindcss": "^4"
+  }
+}
