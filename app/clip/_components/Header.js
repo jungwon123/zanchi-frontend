@@ -14,7 +14,7 @@ export default function Header() {
       </HeaderTabs>
       <HeaderActions>
         <IconButton aria-label="search" $src="/icon/search.png" onClick={() => window.location.href = '/search'} />
-        <IconButton aria-label="notifications" $src="/icon/bell.png" />
+        <IconButton aria-label="notifications" $src="/icon/bell.png" onClick={() => window.location.href = '/notifications'} />
       </HeaderActions>
     </HeaderBar>
   );
