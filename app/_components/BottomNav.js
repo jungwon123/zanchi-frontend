@@ -9,6 +9,7 @@ const NavBar = styled.nav`
   right: 0;
   bottom: 0;
   height: 72px;
+  padding-bottom: var(--safe-bottom);
   background: rgba(0,0,0,.8);
   display: grid;
   grid-template-columns: repeat(5, 1fr);

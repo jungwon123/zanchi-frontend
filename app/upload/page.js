@@ -2,7 +2,8 @@
 
 import { useRef, useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Container, TopBar, BackBtn, Title, VideoBox, VideoTag, EditBadge, CaptionWrap, CaptionLabel, CaptionPreview, Suggestions, SuggestItem, Avatar, HashIcon, AgreeRow, Checkbox, PostBar, PostBtn, FileInput, PickBtn } from "./_styles";
+import { Container, TopBar, BackBtn, Title, VideoBox, VideoTag, EditBadge, CaptionWrap, CaptionLabel, CaptionPreview, Suggestions, SuggestItem, Avatar, HashIcon, AgreeRow, Checkbox, PostBar, FileInput, PickBtn } from "./_styles";
+import PrimaryButton from "@/app/_components/PrimaryButton";
 import { useRecoilState } from "recoil";
 import { uploadVideoUrlState, uploadCaptionState } from "../_state/atoms";
 
@@ -99,11 +100,11 @@ export default function UploadPage() {
       </AgreeRow>
 
       <PostBar>
-        <PostBtn disabled={!enabled} $enabled={enabled} onClick={()=>{
+        <PrimaryButton disabled={!enabled} onClick={()=>{
           if (!enabled) return; 
           // 업로드 로딩 시뮬레이션 후 클립으로 이동
           setTimeout(()=> router.push('/clip'), 600);
-        }}>게시하기</PostBtn>
+        }}>게시하기</PrimaryButton>
       </PostBar>
     </Container>
   );

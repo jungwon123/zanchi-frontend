@@ -42,7 +42,7 @@ export default function CommentsSheet({ clipAuthor = "사용자" }) {
   const sendEnabled = input.trim().length > 0;
 
   // 동적으로 시트 높이를 CSS 변수로 노출하여 비디오가 동일한 윗선까지 줄어들게 함
-  const sheetStyle = open ? { ['--sheet-h']: '70vh' } : {};
+  const sheetStyle = open ? { ['--sheet-h']: '70vh', minHeight: '500px' } : {};
 
   return (
     <>

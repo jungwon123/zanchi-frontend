@@ -63,12 +63,9 @@ export const Checkbox = styled.input`
   width: 18px; height: 18px;
 `;
 export const PostBar = styled.div`
-  position: fixed; left: 0; right: 0; bottom: 0; padding: 16px; background: #fff; border-top: 1px solid #eee;
+  position: fixed; left: 0; right: 0; bottom: var(--safe-bottom); padding: 16px;
 `;
-export const PostBtn = styled.button`
-  width: 100%; height: 56px; border-radius: 28px; border: 0; font-size: 18px; font-weight: 700; color: #fff;
-  background: ${(p)=> p.$enabled ? '#ff8a00' : '#ffd2a6'};
-`;
+// PrimaryButton 공통 사용으로 대체됨
 export const FileInput = styled.input`
   display: none;
 `;

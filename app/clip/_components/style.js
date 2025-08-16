@@ -118,7 +118,7 @@ export const MetaWrap = styled.div`
   position: absolute;
   left: 12px;
   right: 12px;
-  bottom: 84px;
+  bottom: calc(84px + var(--safe-bottom));
   display: flex;
   gap: 12px;
   align-items: flex-start;
@@ -168,6 +168,7 @@ export const BottomNavBar = styled.nav`
   right: 0;
   bottom: 0;
   height: 72px;
+  padding-bottom: var(--safe-bottom);
   background: rgba(0,0,0,.8);
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -188,7 +189,6 @@ export const SheetWrap = styled.div`
   position: fixed;
   left: 0; right: 0; bottom: 0;
   height: ${(p) => (p.$open ? '211px' : '0')};
-  min-height: ${(p) => (p.$open ? '280px' : '0')};
   background: #fff;
   color: #000;
   border-top-left-radius: 40px;
@@ -216,13 +216,13 @@ export const SheetTitle = styled.div`
 export const SheetBody = styled.div`
   height: calc(100% - 52px);
   overflow: auto;
-  padding: 8px 16px 84px;
+  padding: 8px 16px calc(84px + var(--safe-bottom));
 `;
 
 // Share sheet
 export const ShareWrap = styled(SheetWrap)``;
 export const ShareBody = styled.div`
-  padding: 24px 16px 32px;
+  padding: 24px 16px calc(32px + var(--safe-bottom));
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; justify-items: center; align-items: start;
 `;
 export const ShareItem = styled.button`
@@ -250,7 +250,7 @@ export const RepliesBlock = styled.div`
   margin-left: 40px; /* 사양 7: 40px 안쪽 들여쓰기 */
 `;
 export const SheetInputBar = styled.div`
-  position: absolute; left: 0; right: 0; bottom: 0; height: 64px; background: #fff; display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid #eee;
+  position: absolute; left: 0; right: 0; bottom: var(--safe-bottom); height: 64px; background: #fff; display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid #eee;
 `;
 export const InputWrapper = styled.div`
   position: relative; flex: 1; height: 44px;

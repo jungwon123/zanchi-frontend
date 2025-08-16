@@ -19,7 +19,7 @@ const CaptionArea = styled.textarea`
   width: 100%; min-height: 160px; border: none; outline: none; resize: none; font-size: 18px; padding: 16px;
 `;
 const Suggestions = styled.div`
-  border-top: 1px solid #eee; max-height: 260px; overflow: auto;
+  border-top: 1px solid #eee; max-height: 260px; overflow: auto; padding-bottom: var(--safe-bottom);
 `;
 const Item = styled.button`
   width: 100%; text-align: left; padding: 12px 16px; display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: center; border: 0; background: #fff;
