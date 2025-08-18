@@ -33,10 +33,10 @@ export default function BottomNav({ current = "clip", onChange }) {
   const router = useRouter();
   const items = [
     { key: "clip", label: "클립", icon: "/icon/clip.png", to: "/clip" },
-    { key: "rank", label: "랭킹", icon: "/icon/rank.png", to: "/rank" },
+    { key: "rank", label: "랭킹", icon: "/icon/rank.png", to: "/ranking" },
     { key: "upload", label: "업로드", icon: "/icon/upload.png", to: "/upload" },
     { key: "ticket", label: "예매하기", icon: "/icon/confirmation.png", to: "/ticket" },
-    { key: "me", label: "내정보", icon: "/icon/profile.png", to: "/profile" },
+    { key: "me", label: "내정보", icon: "/icon/profile.png", to: "/profile/me" },
   ];
   return (
     <NavBar>

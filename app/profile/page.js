@@ -27,8 +27,8 @@ export default function ProfilePage() {
       <Nickname>노래하는 잔치러</Nickname>
       <StatsRow>
         <div><strong>10</strong><span>게시물</span></div>
-        <div><strong>1.2k</strong><span>팔로워</span></div>
-        <div><strong>387</strong><span>팔로잉</span></div>
+        <div onClick={()=> router.push('/profile/follow')} style={{cursor:'pointer'}}><strong>1.2k</strong><span>팔로워</span></div>
+        <div onClick={()=> router.push('/profile/follow')} style={{cursor:'pointer'}}><strong>387</strong><span>팔로잉</span></div>
       </StatsRow>
 
       <ActionsRow>

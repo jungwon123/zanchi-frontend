@@ -8,9 +8,11 @@ import EmblaCarousel from "./_components/EmblaCarousel";
 import Gallery from "./_components/Gallery";
 import MapLink from "./_components/MapLink";
 import ExternalLinks from "./_components/ExternalLinks";
+import { useRouter } from "next/navigation";
 import PeopleSheet from "./_components/PeopleSheet";
 
 export default function TicketPage() {
+  const router = useRouter();
   const saleOpen = false; // 1차: 비활성 상태로 시작
   const dday = 10;
   const [activeTab, setActiveTab] = React.useState('guide');
@@ -33,7 +35,8 @@ export default function TicketPage() {
 
   const [sheetOpen, setSheetOpen] = React.useState(false);
   const onConfirmPeople = ({ count, total }) => {
-    console.log('confirm', count, total);
+    const params = new URLSearchParams({ count: String(count), total: String(total) });
+    router.push(`/payment?${params.toString()}`);
   };
 
   // Section refs for tab scrolling
@@ -69,7 +72,6 @@ export default function TicketPage() {
           </div>
           <Dday>예매 마감까지 D-{dday}</Dday>
         </PriceRow>
-
       </PriceSection>
       <ActionWrap>
         <PrimaryButton onClick={() => setSheetOpen(true)}>예매하기</PrimaryButton>
