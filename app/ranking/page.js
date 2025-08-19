@@ -128,11 +128,13 @@ export default function RankingPage(){
   const dday = Math.max(0, Math.ceil((confirmDay - today)/(1000*60*60*24)));
 
   const [showPopup, setShowPopup] = React.useState(false);
+  const [updatedAt, setUpdatedAt] = React.useState('');
   // 확정 "당일"에만 모달 노출
   React.useEffect(()=>{
     const dayDiff = Math.floor((confirmDay.setHours(0,0,0,0) - new Date().setHours(0,0,0,0)) / (1000*60*60*24));
     if (dayDiff === 0) setShowPopup(true);
   },[]);
+  React.useEffect(()=>{ setUpdatedAt(new Date().toLocaleString()); },[]);
 
   const openClip = () => router.push('/clip');
   const goBuy = () => router.push('/payment');
@@ -145,7 +147,7 @@ export default function RankingPage(){
       </TopBar>
 
       <Banner>
-        <div>업데이트 {new Date().toLocaleString()}</div>
+        <div suppressHydrationWarning>업데이트 {updatedAt || '-'}</div>
         <div><Sub>잔치러 확정까지</Sub> D-{dday}</div>
       </Banner>
 
