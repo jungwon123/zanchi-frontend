@@ -20,8 +20,8 @@ export const ConfirmBtn = styled.button`
 `;
 
 export const VideoBox = styled.div`
-  margin: 12px 16px; border-radius: 16px; background: #b0b0b7; overflow: hidden; position: relative;
-  aspect-ratio: 9/16; display: grid; place-items: center;
+  width: 195px; height: 346px; margin: 12px auto; border-radius: 16px; background: #b0b0b7; overflow: hidden; position: relative;
+  display: grid; place-items: center;
 `;
 export const VideoTag = styled.video`
   width: 100%; height: 100%; object-fit: cover; background: #000;

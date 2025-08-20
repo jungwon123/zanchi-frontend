@@ -6,6 +6,8 @@ import { Container, TopBar, BackBtn, Title, VideoBox, VideoTag, EditBadge, Capti
 import PrimaryButton from "@/app/_components/PrimaryButton";
 import { useRecoilState } from "recoil";
 import { uploadVideoUrlState, uploadCaptionState } from "../_state/atoms";
+import { useMutation } from "@tanstack/react-query";
+import { uploadClip } from "@/app/_api/clips";
 
 export default function UploadPage() {
   const router = useRouter();
@@ -41,6 +43,7 @@ export default function UploadPage() {
     if (!f) return;
     const url = URL.createObjectURL(f);
     setFileUrl(url);
+    setFile(f);
   };
 
   const onCaptionChange = (e) => {
@@ -56,6 +59,18 @@ export default function UploadPage() {
     setCaption(replaced);
     setMode(null); setKeyword('');
   };
+
+  const [file, setFile] = useState(null);
+  const clearVideo = () => {
+    setFile(null);
+    if (fileUrl) URL.revokeObjectURL(fileUrl);
+    setFileUrl("");
+  };
+
+  const mut = useMutation({
+    mutationFn: () => uploadClip({ file, caption }),
+    onSuccess: () => router.push('/clip'),
+  });
 
   return (
     <Container>
@@ -73,7 +88,7 @@ export default function UploadPage() {
       {fileUrl && (
         <VideoBox>
           <VideoTag ref={videoRef} src={fileUrl} controls autoPlay playsInline muted />
-          <EditBadge onClick={()=> alert('커버 편집은 데모에서 생략되었습니다')}>✎</EditBadge>
+          <EditBadge onClick={clearVideo}>삭제</EditBadge>
         </VideoBox>
       )}
 
@@ -100,11 +115,7 @@ export default function UploadPage() {
       </AgreeRow>
 
       <PostBar>
-        <PrimaryButton disabled={!enabled} onClick={()=>{
-          if (!enabled) return; 
-          // 업로드 로딩 시뮬레이션 후 클립으로 이동
-          setTimeout(()=> router.push('/clip'), 600);
-        }}>게시하기</PrimaryButton>
+        <PrimaryButton disabled={!enabled || !file} onClick={()=>{ if(!file) return; mut.mutate(); }}>게시하기</PrimaryButton>
       </PostBar>
     </Container>
   );

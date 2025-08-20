@@ -3,6 +3,8 @@
 import React from "react";
 import styled from "styled-components";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
+import { updateName } from "@/app/_api/profile";
 
 const Wrap = styled.div`
   min-height: 100svh; background: #fff; color: #111; padding-bottom: calc(16px + var(--safe-bottom));
@@ -48,6 +50,8 @@ export default function EditProfilePage() {
   const [bio, setBio] = React.useState('소개');
   const [link, setLink] = React.useState('링크');
 
+  const mut = useMutation({ mutationFn: () => updateName(nickname) });
+
   return (
     <Wrap>
       <TopBar>
@@ -78,6 +82,9 @@ export default function EditProfilePage() {
           <Input value={link} onChange={(e)=> setLink(e.target.value)} placeholder="https://" />
         </Row>
       </Form>
+      <div style={{ padding: 16 }}>
+        <button onClick={() => mut.mutate()} style={{ width: '100%', height: 48, borderRadius: 12, border: 0, background: '#ff7d0a', color: '#fff', fontWeight: 800 }}>저장</button>
+      </div>
     </Wrap>
   );
 }

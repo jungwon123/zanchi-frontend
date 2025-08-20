@@ -4,6 +4,8 @@ import React from "react";
 import styled from "styled-components";
 import PrimaryButton from "@/app/_components/PrimaryButton";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
+import { login } from "@/app/_api/auth";
 
 const Wrap = styled.div`
   min-height: 100svh; background: #fff; color: #111;
@@ -73,10 +75,15 @@ export default function LoginPage(){
     return () => { vv.removeEventListener('resize', update); vv.removeEventListener('scroll', update); };
   },[]);
 
+  const mut = useMutation({
+    mutationFn: () => login({ email: id, password: pw }),
+    onSuccess: () => router.push('/onboarding/interests'),
+    onError: () => setError('로그인에 실패했습니다'),
+  });
+
   const submit = () => {
     if(!id || !pw){ setError('아이디 또는 비밀번호를 입력해 주세요'); return; }
-    // TODO: 실제 로그인 연동 후 성공 시 아래 이동
-    router.push('/onboarding/interests');
+    mut.mutate();
   };
 
   return (

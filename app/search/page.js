@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { searchMembers, searchClips } from "@/app/_api/search";
 import { Container, TopBar, SearchWrap, SearchInput, SearchIcon, CancelBtn, Section, SectionTitle, Chips, Chip, ChipRemove, Grid, Card, Thumb, PlayBadge, MetaRow, Avatar, MetaText, TabsBar, TabBtn, PagesWrap, PagesInner, PagePane, AccountsList, AccountItem, AccountAvatar, AccountText, SortBar, SortChip } from "./_styles";
 
 export default function SearchPage() {
@@ -19,6 +21,20 @@ export default function SearchPage() {
   };
 
   const viewed = new Array(4).fill(0).map((_, i) => ({ id: `v${i}`, user: "노래듣는중", handle: "@listen_to_music", plays: 87 }));
+
+  const trimmed = q.trim();
+  const { data: memberRes, isFetching: fetchingMembers } = useQuery({
+    queryKey: ['search-members', trimmed, 0],
+    queryFn: () => searchMembers({ q: trimmed, page: 0, size: 20 }),
+    enabled: trimmed.length > 0 && tab === 0,
+    staleTime: 30_000,
+  });
+  const { data: clipRes, isFetching: fetchingClips } = useQuery({
+    queryKey: ['search-clips', trimmed, 0, clipSort],
+    queryFn: () => searchClips({ q: trimmed, page: 0, size: 20, sort: clipSort }),
+    enabled: trimmed.length > 0 && tab === 1,
+    staleTime: 30_000,
+  });
 
   return (
     <Container>
@@ -79,12 +95,12 @@ export default function SearchPage() {
             <PagesInner $index={tab}>
               <PagePane>
                 <AccountsList>
-                  {["노래좋은 잔치러","노래방 가자","노래만 합니다","노래듣는중","노래가 하고싶니","노래만듦"].map((name,i)=> (
-                    <AccountItem key={i}>
-                      <AccountAvatar />
+                  {(memberRes?.content || []).map((u)=> (
+                    <AccountItem key={u.id}>
+                      <AccountAvatar style={{ backgroundImage: u.avatarUrl ? `url(${u.avatarUrl})` : undefined, backgroundSize:'cover' }} />
                       <AccountText>
-                        <strong>{name}</strong>
-                        <span>@{name.replaceAll(' ','_').toLowerCase()}</span>
+                        <strong>{u.name}</strong>
+                        <span>@{u.loginId}</span>
                       </AccountText>
                     </AccountItem>
                   ))}
@@ -96,16 +112,16 @@ export default function SearchPage() {
                   <SortChip $active={clipSort==='views'} onClick={()=>setClipSort('views')}>조회수 순</SortChip>
                 </SortBar>
                 <Grid>
-                  {viewed.map((v) => (
-                    <Card key={v.id} onClick={() => router.push("/clip")}>
+                  {(clipRes?.content || []).map((c) => (
+                    <Card key={c.id} onClick={() => router.push("/clip")}>
                       <Thumb>
-                        <PlayBadge>{v.plays} ▶</PlayBadge>
+                        <PlayBadge>{c.viewCount} ▶</PlayBadge>
                       </Thumb>
                       <MetaRow>
                         <Avatar />
                         <MetaText>
-                          <strong>{v.user}</strong>
-                          <span>{v.handle}</span>
+                          <strong>{c.authorName}</strong>
+                          <span>@u{c.uploaderId}</span>
                         </MetaText>
                       </MetaRow>
                     </Card>

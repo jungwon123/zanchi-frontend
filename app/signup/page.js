@@ -4,6 +4,8 @@ import React from "react";
 import styled from "styled-components";
 import { useRouter } from "next/navigation";
 import PrimaryButton from "@/app/_components/PrimaryButton";
+import { useMutation } from "@tanstack/react-query";
+import { signup } from "@/app/_api/auth";
 
 const Wrap = styled.div`
   min-height: 100svh; background: #fff; color: #111; display: grid; grid-template-rows: auto 1fr auto;
@@ -57,7 +59,7 @@ const BottomBar = styled.div`
 
 export default function SignupPage(){
   const router = useRouter();
-  const [id, setId] = React.useState("");
+  const [id, setId] = React.useState(""); // loginId
   const [pw, setPw] = React.useState("");
   const [pw2, setPw2] = React.useState("");
   const [name, setName] = React.useState("");
@@ -98,9 +100,14 @@ export default function SignupPage(){
     // 실제에선 서버로 전송
   };
 
+  const mut = useMutation({
+    mutationFn: () => signup({ loginId: id, name, password: pw }),
+    onSuccess: () => router.push('/onboarding/interests'),
+  });
+
   const submit = () => {
     if(!canSubmit) return;
-    router.push('/onboarding/interests');
+    mut.mutate();
   };
 
   return (
@@ -113,7 +120,7 @@ export default function SignupPage(){
       <Section>
         <Step $active={step===1} aria-hidden={step!==1}>
             <Field>
-              <Input placeholder="아이디" value={id} onChange={(e)=> setId(e.target.value)} />
+              <Input placeholder="아이디(로그인 ID)" value={id} onChange={(e)=> setId(e.target.value)} />
               {id && <ClearBtn onClick={()=> setId('')}>×</ClearBtn>}
             </Field>
             <Helper>{id && idTaken ? '이미 존재하는 아이디입니다.' : ''}</Helper>

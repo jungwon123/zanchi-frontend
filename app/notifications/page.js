@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useRecoilState } from "recoil";
 import { notificationsState } from "../_state/atoms";
+import { useEffect } from "react";
+import { getNotifications } from "@/app/_api/notifications";
 import styled from "styled-components";
 
 const Bar = styled.div`
@@ -39,6 +41,29 @@ export default function NotificationsPage() {
   const router = useRouter();
   const [list, setList] = useRecoilState(notificationsState);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getNotifications({ page: 0, size: 50 });
+        setList(
+          res.items.map((n) => ({
+            id: n.id,
+            type: n.type,
+            message: n.text,
+            read: n.read,
+            createdAt: n.createdAt,
+            clipId: n.clipId,
+            commentId: n.commentId,
+            actorId: n.actorId,
+            receiverId: n.receiverId,
+            user: n.actorNickname ?? '알 수 없음',
+            avatarUrl: n.actorAvatarUrl,
+          }))
+        );
+      } catch (e) { /* ignore */ }
+    })();
+  }, [setList]);
+
   const clearAll = () => setList([]);
 
   return (
@@ -51,7 +76,7 @@ export default function NotificationsPage() {
       <List>
         {list.map((n) => (
           <Item key={n.id}>
-            <Avatar />
+            <Avatar style={{ backgroundImage: n.avatarUrl ? `url(${n.avatarUrl})` : undefined, backgroundSize: 'cover' }} />
             <Text>
               <strong>{n.user}</strong> {n.message}
             </Text>

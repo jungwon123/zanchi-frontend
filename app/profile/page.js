@@ -7,14 +7,30 @@ import { shareOpenState } from "../_state/atoms";
 import { Container, TopBar, BackBtn, HandleText, Avatar, Nickname, StatsRow, ActionsRow, PrimaryBtn, SecondaryBtn, Grid, ClipCard, ViewsBadge } from "./_styles";
 import ShareSheet from "../clip/_components/ShareSheet";
 import BottomNav from "../_components/BottomNav";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getRelation, toggleFollow, getMemberClips, getFollowCounts } from "@/app/_api/profile";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [following, setFollowing] = useState(false);
+  const userId = 12; // TODO: 실제 프로필 대상 ID 주입
+  const qc = useQueryClient();
+  const { data: rel } = useQuery({ queryKey: ['rel', userId], queryFn: () => getRelation(userId) });
+  const { data: counts } = useQuery({ queryKey: ['counts', userId], queryFn: () => getFollowCounts(userId) });
+  const { data: clipsData } = useQuery({ queryKey: ['member-clips', userId, 0], queryFn: () => getMemberClips(userId, { page: 0, size: 50 }) });
+  const [following, setFollowing] = useState(Boolean(rel?.following));
   const [pressed, setPressed] = useState(false);
   const openShare = useSetRecoilState(shareOpenState);
 
-  const clips = new Array(12).fill(0).map((_, i) => ({ id: `c${i}`, views: 87 }));
+  const clips = (clipsData?.content || []).map((c) => ({ id: c.id, views: c.viewCount }));
+
+  const followMut = useMutation({
+    mutationFn: () => toggleFollow(userId),
+    onSuccess: (res) => {
+      setFollowing(Boolean(res?.following));
+      qc.invalidateQueries({ queryKey: ['rel', userId] });
+      qc.invalidateQueries({ queryKey: ['counts', userId] });
+    }
+  });
 
   return (
     <Container>
@@ -36,7 +52,7 @@ export default function ProfilePage() {
           $pressed={pressed}
           onMouseDown={() => setPressed(true)}
           onMouseUp={() => setPressed(false)}
-          onClick={() => setFollowing((v)=>!v)}
+          onClick={() => followMut.mutate()}
           style={{ background: following ? '#eee' : '#ff8a00', color: following ? '#333' : '#fff' }}
         >
           {following ? '팔로잉' : '팔로우'}

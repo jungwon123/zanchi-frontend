@@ -244,7 +244,3 @@ export const TopTitle = styled.div`
   text-align: center; font-weight: 800; font-size: 18px;
 `;
 
-
-// ----- Venue extra (13~17) -----
-// 스타일은 각 컴포넌트 하위 파일로 분리되었습니다.
-

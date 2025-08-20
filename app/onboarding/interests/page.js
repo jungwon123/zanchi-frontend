@@ -4,6 +4,8 @@ import React from "react";
 import styled from "styled-components";
 import { useRouter } from "next/navigation";
 import PrimaryButton from "@/app/_components/PrimaryButton";
+import { useMutation } from "@tanstack/react-query";
+import { submitSurvey } from "@/app/_api/preferences";
 
 const Wrap = styled.div`
   min-height: 100svh; background: #fff; color: #111; display: grid; grid-template-rows: auto auto 1fr auto;
@@ -65,7 +67,14 @@ export default function InterestsPage(){
       </Grid>
 
       <BottomBar>
-        <PrimaryButton disabled={selected.length === 0} onClick={()=> router.push('/onboarding/welcome')}>완료</PrimaryButton>
+        <PrimaryButton
+          disabled={selected.length === 0}
+          onClick={() => {
+            // 간단 매핑: 샘플 라벨을 임시 id로 매핑 (실제에선 서버 제공 태그 목록의 id 사용)
+            const tagIds = selected.map((_, i) => i + 1);
+            submitSurvey(tagIds).then(() => router.push('/onboarding/welcome'));
+          }}
+        >완료</PrimaryButton>
       </BottomBar>
     </Wrap>
   );

@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRecoilState } from "recoil";
 import { commentsOpenState } from "../../_state/atoms";
 import { SheetBackdrop, SheetWrap, SheetHeader, SheetHandle, SheetTitle, SheetBody, CommentItem, CommentMeta, ReplyLink, MoreRepliesLink, RepliesBlock, SheetInputBar, InputWrapper, InputField, SendButton } from "./style";
+import { getComments, addComment, getReplies, addReply } from "@/app/_api/comments";
 
 function timeAgo(ts) {
   const diff = Math.floor((Date.now() - ts) / 1000);
@@ -24,19 +25,21 @@ function timeAgo(ts) {
   return `${v}${label}`;
 }
 
-export default function CommentsSheet({ clipAuthor = "사용자" }) {
+export default function CommentsSheet({ clipAuthor = "사용자", clipId = 10 }) {
   const [open, setOpen] = useRecoilState(commentsOpenState);
   const [input, setInput] = useState("");
   const [replyTo, setReplyTo] = useState(null);
   const [showPrevReplies, setShowPrevReplies] = useState({});
+  const [list, setList] = useState([]);
 
-  const comments = useMemo(() => [
-    { id: "c1", author: "춤추는 잔치러", text: "노래하는 잔치러님.. 너무 멋있어요!!", ts: Date.now()-3600*1000, replies: [
-      { id: "r1", author: "연극이 좋아", text: "👍👍👍👍👍", ts: Date.now()-86400*1000 },
-      { id: "r2", author: "음악하는 사나이", text: "혹시 같이 작업 할 생각 있으세요?", ts: Date.now()-86400*1000*2 },
-      { id: "r3", author: "팬", text: "대박...", ts: Date.now()-86400*1000*3 },
-    ]},
-  ], []);
+  // 최초 열릴 때 댓글 로드
+  useEffect(() => {
+    if (!open) return;
+    (async () => {
+      const res = await getComments(clipId, { page: 0, size: 20 });
+      setList(res.items);
+    })();
+  }, [open, clipId]);
 
   const placeholder = input.length === 0 ? `${clipAuthor}에게 댓글 추가` : "";
   const sendEnabled = input.trim().length > 0;
@@ -53,36 +56,43 @@ export default function CommentsSheet({ clipAuthor = "사용자" }) {
           <SheetTitle>댓글</SheetTitle>
         </SheetHeader>
         <SheetBody>
-          {comments.map((c) => (
+          {list.map((c) => (
             <div key={c.id}>
               <CommentItem $highlight={replyTo === c.author}>
                 <div style={{ width: 36, height: 36, borderRadius: 18, background: "#eee" }} />
                 <div>
                   <CommentMeta>
-                    <strong>{c.author}</strong> · {timeAgo(c.ts)}
+                    <strong>{c.author?.nickname ?? c.author}</strong> · {timeAgo(new Date(c.createdAt).getTime())}
                   </CommentMeta>
-                  <div>{c.text}</div>
+                  <div>{c.content}</div>
                   <ReplyLink onClick={() => { setReplyTo(c.author); setInput(`@${c.author} `); }}>
                     답글달기
                   </ReplyLink>
-                  {c.replies && c.replies.length > 0 && (
+                  {!!c.replyCount && (
                     <div style={{ marginLeft: 40 }}>
-                    <MoreRepliesLink onClick={() => setShowPrevReplies((s) => ({ ...s, [c.id]: !s[c.id] }))}>
-                      이전 답글 {c.replies.length}개 더보기
-                    </MoreRepliesLink>
+                      <MoreRepliesLink onClick={async () => {
+                        setShowPrevReplies((s) => ({ ...s, [c.id]: !s[c.id] }));
+                        if (!showPrevReplies[c.id]) {
+                          const r = await getReplies(clipId, c.id, { page: 0, size: 20 });
+                          c._replies = r.items; // 메모리 캐시
+                          setList((prev) => [...prev]);
+                        }
+                      }}>
+                        이전 답글 {c.replyCount}개 더보기
+                      </MoreRepliesLink>
                     </div>
                   )}
                   {showPrevReplies[c.id] && (
                     <RepliesBlock>
-                      {c.replies.map((r) => (
+                      {(c._replies || []).map((r) => (
                         <CommentItem key={r.id} $highlight={replyTo === r.author} style={{ paddingLeft: 0 }}>
                           <div style={{ width: 32, height: 32, borderRadius: 16, background: "#eee" }} />
                           <div>
                             <CommentMeta>
-                              <strong>{r.author}</strong> · {timeAgo(r.ts)}
+                              <strong>{r.author?.nickname ?? r.authorName ?? r.author}</strong> · {timeAgo(new Date(r.createdAt).getTime())}
                             </CommentMeta>
-                            <div>{r.text}</div>
-                            <ReplyLink onClick={() => { setReplyTo(r.author); setInput(`@${r.author} `); }}>
+                            <div>{r.content}</div>
+                            <ReplyLink onClick={() => { setReplyTo(r.author?.nickname ?? r.authorName ?? r.author); setInput(`@${r.author?.nickname ?? r.authorName ?? r.author} `); }}>
                               답글달기
                             </ReplyLink>
                           </div>
@@ -110,7 +120,22 @@ export default function CommentsSheet({ clipAuthor = "사용자" }) {
               setInput(v);
             }}
             />
-            <SendButton $enabled={sendEnabled} disabled={!sendEnabled} $src="/icon/submit.png" />
+            <SendButton
+              $enabled={sendEnabled}
+              disabled={!sendEnabled}
+              $src="/icon/submit.png"
+              onClick={async () => {
+                if (!sendEnabled) return;
+                const res = replyTo
+                  ? await addReply(clipId, list.find((c) => `@${c.author?.nickname ?? c.author}` === replyTo)?.id || list[0]?.id, { content: input.trim() })
+                  : await addComment(clipId, { content: input.trim() });
+                // 단순 리프레시
+                const next = await getComments(clipId, { page: 0, size: 20 });
+                setList(next.items);
+                setInput("");
+                setReplyTo(null);
+              }}
+            />
           </InputWrapper>
         </SheetInputBar>
       </SheetWrap>
