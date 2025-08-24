@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useSetRecoilState } from "recoil";
@@ -11,7 +12,7 @@ import HlsPlayer from "../clip/_components/HlsPlayer";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getRelation, toggleFollow, unfollow, getMemberClips, getFollowCounts } from "@/app/_api/profile";
 
-export default function ProfilePage() {
+function ProfilePageClient() {
   const router = useRouter();
   const params = useSearchParams();
   const userId = Number(params.get('userId')) || 0;
@@ -92,6 +93,14 @@ export default function ProfilePage() {
       <ShareSheet />
       <BottomNav current="me" />
     </Container>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 16, color: '#999' }}>로딩중…</div>}>
+      <ProfilePageClient />
+    </Suspense>
   );
 }
 

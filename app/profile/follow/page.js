@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import styled from "styled-components";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -59,7 +59,7 @@ const Handle = styled.div`
   color: #666; font-size: 14px;
 `;
 
-export default function FollowListPage() {
+function FollowListClient() {
   const router = useRouter();
   const params = useSearchParams();
   const userId = Number(params.get('userId')) || 0;
@@ -102,6 +102,14 @@ export default function FollowListPage() {
         ))}
       </List>
     </Container>
+  );
+}
+
+export default function FollowListPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 16, color: '#999' }}>로딩중…</div>}>
+      <FollowListClient />
+    </Suspense>
   );
 }
 
