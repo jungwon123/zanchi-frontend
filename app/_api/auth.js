@@ -9,15 +9,21 @@ export async function signup({ loginId, name, password }) {
 }
 
 export async function login({ loginId, password }) {
-  const { data } = await api.post('/api/login', { loginId, password });
+  const res = await api.post('/api/login', { loginId, password });
+  const { data, headers } = res;
   if (typeof window !== 'undefined') {
-    if (data && data.token) {
-      localStorage.setItem('auth_token', data.token);
-    } else {
-      localStorage.removeItem('auth_token');
+    // 우선순위: 응답 헤더 Authorization > 바디 token
+    const headerAuth = headers?.authorization || headers?.Authorization;
+    let token = '';
+    if (headerAuth && typeof headerAuth === 'string') {
+      token = headerAuth.replace(/^Bearer\s+/i, '').trim();
+    } else if (data && data.token) {
+      token = String(data.token);
     }
+    if (token) localStorage.setItem('auth_token', token); else localStorage.removeItem('auth_token');
+
     try {
-      // 백엔드가 member를 안 주는 경우 대비: 토큰 저장 후 내 정보 조회하여 저장
+      // 토큰 저장 후 내 정보 조회하여 저장
       const me = await getMySummary();
       localStorage.setItem('auth_member', JSON.stringify(me || {}));
     } catch {

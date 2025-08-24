@@ -71,6 +71,30 @@ export async function getClips({ page = 0, size = 10 } = {}) {
   };
 }
 
+// 내가 팔로우 중인 사람들의 클립 (팔로잉 탭)
+export async function getFollowingClips({ page = 0, size = 10 } = {}) {
+  const { data } = await api.get(`/api/me/following/clips`, { params: { page, size } });
+  const items = (data?.content || []).map((c) => ({
+    id: c.id,
+    src: toAbsoluteUrl(c.videoUrl),
+    caption: c.caption ?? "",
+    authorName: c.authorName ?? "",
+    uploaderId: c.authorId ?? null,
+    uploaderAvatarUrl: c.authorAvatarUrl ?? null,
+    saved: Boolean(c.savedByMe ?? c.saved),
+    liked: Boolean(c.likedByMe ?? c.liked),
+    likeCount: c.likeCount ?? 0,
+    commentCount: c.commentCount ?? 0,
+    createdAt: c.createdAt,
+  }));
+  return {
+    items,
+    pageable: data?.pageable ?? { page, size },
+    totalElements: data?.totalElements ?? items.length,
+    last: data?.last ?? true,
+  };
+}
+
 // 공통: 클립 삭제
 export async function deleteClip(clipId) {
   const { data } = await api.delete(`/api/clips/${clipId}`);
@@ -79,7 +103,8 @@ export async function deleteClip(clipId) {
 
 // 공통: 캡션 수정
 export async function updateClipCaption(clipId, { caption }) {
-  const { data } = await api.put(`/api/clips/${clipId}`, { caption });
+  // 백엔드가 인증 주체에서 memberId를 추출하므로 바디엔 caption만 보냅니다.
+  const { data } = await api.patch(`/api/clips/${clipId}`, { caption });
   return data;
 }
 

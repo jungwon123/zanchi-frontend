@@ -64,7 +64,7 @@ export const postActionsOpenState = atom({
 // 게시물 더보기 시트 컨텍스트: open 여부와 대상 업로더/클립
 export const postActionsState = atom({
   key: 'postActionsState',
-  default: { open: false, uploaderId: null, clipId: null },
+  default: { open: false, uploaderId: null, clipId: null, caption: '' },
 });
 
 export const notificationsState = atom({

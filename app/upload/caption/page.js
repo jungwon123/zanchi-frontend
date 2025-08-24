@@ -1,9 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, useEffect } from "react";
 import { useRecoilState } from "recoil";
 import { useQuery } from "@tanstack/react-query";
+import { updateClipCaption } from "@/app/_api/clips";
 import { getMySummary, getFollowing } from "@/app/_api/profile";
 import { uploadCaptionState } from "../../_state/atoms";
 import styled from "styled-components";
@@ -35,6 +36,7 @@ const HashIcon = styled.div`
 
 export default function CaptionEditPage() {
   const router = useRouter();
+  const params = useSearchParams();
   const [caption, setCaption] = useRecoilState(uploadCaptionState);
   const [mode, setMode] = useState(null); // '@' | '#'
   const [keyword, setKeyword] = useState("");
@@ -91,11 +93,27 @@ export default function CaptionEditPage() {
     setCaption(replaced); setMode(null); setKeyword('');
   };
 
+  useEffect(() => {
+    // 편집 진입 시 쿼리로 전달된 초기 캡션을 세팅
+    const cap = params.get('caption');
+    if (cap != null) {
+      try { setCaption(decodeURIComponent(cap)); }
+      catch { setCaption(cap); }
+    }
+  }, [params, setCaption]);
+
   return (
     <Container>
       <TopBar>
         <div>캡션</div>
-        <Confirm onClick={()=> router.back()}>확인</Confirm>
+        <Confirm onClick={async ()=>{
+          const clipIdStr = params.get('clipId');
+          const clipId = clipIdStr ? Number(clipIdStr) : null;
+          if (clipId) {
+            try { await updateClipCaption(clipId, { caption }); } catch {}
+          }
+          router.back();
+        }}>확인</Confirm>
       </TopBar>
       <CaptionArea autoFocus placeholder="캡션 추가…" value={caption} onChange={onChange} />
       {data.length>0 && (

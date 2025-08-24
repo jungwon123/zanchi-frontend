@@ -2,12 +2,15 @@
 
 import { useQuery } from "@tanstack/react-query";
 import FeedItem from "./FeedItem";
-import { getClips } from "@/app/_api/clips";
+import { getClips, getFollowingClips } from "@/app/_api/clips";
+import { useRecoilValue } from "recoil";
+import { activeTabState } from "@/app/_state/atoms";
 
 export default function FeedList() {
+  const tab = useRecoilValue(activeTabState);
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["clips-all", 0],
-    queryFn: () => getClips({ page: 0, size: 10 }),
+    queryKey: [tab === 'following' ? "clips-following" : "clips-all", 0],
+    queryFn: () => (tab === 'following' ? getFollowingClips({ page: 0, size: 10 }) : getClips({ page: 0, size: 10 })),
     staleTime: 60_000,
   });
   if (isLoading) return <div style={{ color: "#999" }}>로딩중…</div>;

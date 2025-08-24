@@ -1,4 +1,4 @@
-import { MetaWrap, Avatar, MetaTextWrap, FollowBadge, MetaTitle, MetaDesc, ActionItem, ActionButton, MetaHeaderRow } from "./style";
+import { MetaWrap, Avatar, MetaTextWrap, FollowBadge, MetaTitle, ActionItem, ActionButton, MetaHeaderRow } from "./style";
 import { useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { postActionsState, postActionsOpenState } from "@/app/_state/atoms";
@@ -55,17 +55,25 @@ export default function BottomMeta({ profile = { name: "사용자", following: f
             aria-label="more"
             $src="/icon/tabler_dots.png"
             style={{ backgroundSize: "22px 22px" }}
-            onClick={() => { setPostActions({ open: true, uploaderId: profile.id, clipId }); setActionsOpen(true); }}
+            onClick={() => { setPostActions({ open: true, uploaderId: profile.id, clipId, caption: title }); setActionsOpen(true); }}
           ></ActionButton>
         </ActionItem>
         </MetaHeaderRow>
         
         
         
-        <MetaTitle onClick={()=> setExpanded((v)=> !v)} style={{ cursor: desc && desc.length>0 ? 'pointer' : 'default' }}>{title}</MetaTitle>
-        <MetaDesc style={{ WebkitLineClamp: expanded ? 'unset' : 2, display: expanded ? 'block' : '-webkit-box', overflow: expanded ? 'visible' : 'hidden' }} onClick={()=> setExpanded((v)=> !v)}>
-          {desc}
-        </MetaDesc>
+        <MetaTitle
+          onClick={()=> setExpanded((v)=> !v)}
+          style={{
+            cursor: title && String(title).length>0 ? 'pointer' : 'default',
+            overflow: expanded ? 'visible' : 'hidden',
+            display: expanded ? 'block' : '-webkit-box',
+            WebkitLineClamp: expanded ? 'unset' : 2,
+            WebkitBoxOrient: 'vertical',
+          }}
+        >
+          {title}
+        </MetaTitle>
       </MetaTextWrap>
     </MetaWrap>
   );
