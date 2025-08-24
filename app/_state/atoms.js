@@ -9,7 +9,7 @@ export const currentFeedIndexState = atom({
 
 export const isMutedState = atom({
   key: "isMutedState",
-  default: true,
+  default: false,
 });
 
 export const userState = atom({
