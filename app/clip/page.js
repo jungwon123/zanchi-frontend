@@ -1,7 +1,7 @@
 import { GlobalStyle, Page } from "../_styles";
 import Header from "./_components/Header";
 import FeedList from "./_components/FeedList";
-import BottomNav from "./_components/BottomNav";
+import BottomNav from "../_components/BottomNav";
 
 export const metadata = { title: "클립" };
 

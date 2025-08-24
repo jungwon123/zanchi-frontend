@@ -23,7 +23,7 @@ export const HeaderBar = styled.div`
   top: 0;
   left: 0;
   right: 0;
-  height: 56px;
+  height: 58px;
   display: flex;
   align-items: center;
   justify-content: center; 
@@ -45,6 +45,14 @@ export const HeaderActions = styled.div`
   transform: translateY(-50%);
   display: flex;
   gap: 16px;
+`;
+export const HeaderLeft = styled.div`
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 12px;
 `;
 export const TabButton = styled.button`
   font-weight: 300;
@@ -70,8 +78,8 @@ export const TabButton = styled.button`
       `)}
 `;
 export const IconButton = styled.button`
-  width: 28px;
-  height: 28px;
+  width: 42px;
+  height: 58px;
   border: 0;
   padding: 0;
   background-color: transparent;
@@ -118,7 +126,7 @@ export const MetaWrap = styled.div`
   position: absolute;
   left: 12px;
   right: 12px;
-  bottom: 84px;
+  bottom: calc(84px + var(--safe-bottom));
   display: flex;
   gap: 12px;
   align-items: flex-start;
@@ -168,6 +176,7 @@ export const BottomNavBar = styled.nav`
   right: 0;
   bottom: 0;
   height: 72px;
+  padding-bottom: var(--safe-bottom);
   background: rgba(0,0,0,.8);
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -187,8 +196,7 @@ export const SheetBackdrop = styled.div`
 export const SheetWrap = styled.div`
   position: fixed;
   left: 0; right: 0; bottom: 0;
-  height: ${(p) => (p.$open ? '211px' : '0')};
-  min-height: ${(p) => (p.$open ? '280px' : '0')};
+  height: ${(p) => (p.$open ? 'var(--sheet-h, 170px)' : '0')};
   background: #fff;
   color: #000;
   border-top-left-radius: 40px;
@@ -216,13 +224,13 @@ export const SheetTitle = styled.div`
 export const SheetBody = styled.div`
   height: calc(100% - 52px);
   overflow: auto;
-  padding: 8px 16px 84px;
+  padding: 8px 16px calc(84px + var(--safe-bottom));
 `;
 
 // Share sheet
 export const ShareWrap = styled(SheetWrap)``;
 export const ShareBody = styled.div`
-  padding: 24px 16px 32px;
+  padding: 24px 16px calc(32px + var(--safe-bottom));
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; justify-items: center; align-items: start;
 `;
 export const ShareItem = styled.button`
@@ -250,7 +258,7 @@ export const RepliesBlock = styled.div`
   margin-left: 40px; /* 사양 7: 40px 안쪽 들여쓰기 */
 `;
 export const SheetInputBar = styled.div`
-  position: absolute; left: 0; right: 0; bottom: 0; height: 64px; background: #fff; display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid #eee;
+  position: absolute; left: 0; right: 0; bottom: var(--safe-bottom); height: 64px; background: #fff; display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid #eee;
 `;
 export const InputWrapper = styled.div`
   position: relative; flex: 1; height: 44px;
@@ -280,5 +288,46 @@ export const NavIcon = styled.span`
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
+`;
+
+// Post actions sheet (신고 등)
+export const ActionsSheetWrap = styled(SheetWrap)``;
+export const ActionsList = styled.div`
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+`;
+export const ActionRow = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 12px;
+  border-radius: 14px;
+  border: 1px solid ${(p) => (p.$danger ? '#ff8a00' : '#9b9b9b')};
+  color: ${(p) => (p.$danger ? '#ff8a00' : '#7a7a7a')};
+  background: #fff;
+  &:active { background-color: #e5e5e5; }
+`;
+export const RowIcon = styled.span`
+  width: 28px; height: 28px;
+  background-image: url(${(p) => p.$src || 'none'});
+  background-repeat: no-repeat; background-position: center; background-size: contain;
+`;
+
+// Report categories
+export const CategoryList = styled.div`
+  margin-top: 4px;
+  background: #fff;
+`;
+export const CategoryRow = styled.button`
+  width: 100%;
+  text-align: left;
+  padding: 14px 12px;
+  border: 0;
+  background: #fff;
+  color: #111;
+  border-bottom: 1px solid #eee;
+  &:active { background-color: #e5e5e5; }
 `;
 
