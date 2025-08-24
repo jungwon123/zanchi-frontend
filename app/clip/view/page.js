@@ -1,12 +1,20 @@
 "use client";
 
-import { Suspense, useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getMemberClipsList } from "@/app/_api/profile";
 import FeedItem from "../_components/FeedItem";
 
-function ClipViewerClient() {
+export default function ClipViewerPage() {
+  return (
+    <React.Suspense fallback={<div style={{ color: "#999", padding: 16 }}>로딩중…</div>}>
+      <ClipViewerInner />
+    </React.Suspense>
+  );
+}
+
+function ClipViewerInner() {
   const params = useSearchParams();
   const router = useRouter();
   const userId = Number(params.get("userId")) || 0;
@@ -70,14 +78,6 @@ function ClipViewerClient() {
         <button onClick={goNext} disabled={idx >= items.length - 1} style={{ pointerEvents: "auto", opacity: idx >= items.length - 1 ? .4 : 1, background: "rgba(255,255,255,.12)", color: "#fff", border: 0, borderRadius: 12, padding: "8px 12px" }}>다음</button>
       </div>
     </div>
-  );
-}
-
-export default function ClipViewerPage() {
-  return (
-    <Suspense fallback={<div style={{ color: "#999", padding: 16 }}>로딩중…</div>}>
-      <ClipViewerClient />
-    </Suspense>
   );
 }
 

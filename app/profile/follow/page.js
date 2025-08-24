@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense } from "react";
+import React from "react";
 import styled from "styled-components";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -59,7 +59,15 @@ const Handle = styled.div`
   color: #666; font-size: 14px;
 `;
 
-function FollowListClient() {
+export default function FollowListPage() {
+  return (
+    <React.Suspense fallback={<div style={{ color: '#999', padding: 16 }}>로딩중…</div>}>
+      <FollowListInner />
+    </React.Suspense>
+  );
+}
+
+function FollowListInner() {
   const router = useRouter();
   const params = useSearchParams();
   const userId = Number(params.get('userId')) || 0;
@@ -102,14 +110,6 @@ function FollowListClient() {
         ))}
       </List>
     </Container>
-  );
-}
-
-export default function FollowListPage() {
-  return (
-    <Suspense fallback={<div style={{ padding: 16, color: '#999' }}>로딩중…</div>}>
-      <FollowListClient />
-    </Suspense>
   );
 }
 
