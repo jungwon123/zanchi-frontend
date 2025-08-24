@@ -17,6 +17,12 @@ export async function getMySummary() {
   return data; // { id, name, loginId, avatarUrl }
 }
 
+// 특정 멤버 요약
+export async function getMemberSummary(userId) {
+  const { data } = await api.get(`/api/members/${userId}/summary`);
+  return data; // { id, name, loginId, avatarUrl }
+}
+
 // 특정 멤버 팔로우/팔로우 해제 토글 (서버 정책에 따름)
 export async function toggleFollow(memberId) {
   const { data } = await api.post(`/api/members/${memberId}/follow`);
@@ -103,6 +109,8 @@ export async function getMemberClipsList(userId, { page = 0, size = 50 } = {}) {
     authorName: c.authorName ?? "",
     uploaderId: c.uploaderId ?? null,
     createdAt: c.createdAt,
+    liked: Boolean(c.likedByMe ?? c.liked),
+    saved: Boolean(c.savedByMe ?? c.saved),
   }));
   return {
     items,

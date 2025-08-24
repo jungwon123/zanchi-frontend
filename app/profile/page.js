@@ -9,7 +9,8 @@ import ShareSheet from "../clip/_components/ShareSheet";
 import BottomNav from "../_components/BottomNav";
 import HlsPlayer from "../clip/_components/HlsPlayer";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getRelation, toggleFollow, unfollow, getMemberClips, getFollowCounts } from "@/app/_api/profile";
+import { getRelation, toggleFollow, unfollow, getMemberClips, getFollowCounts, getMemberSummary } from "@/app/_api/profile";
+import { toAbsoluteUrl } from "@/app/_lib/url";
 
 export default function ProfilePage() {
   return (
@@ -25,24 +26,16 @@ function ProfileInner() {
   const userId = Number(params.get('userId')) || 0;
   const qc = useQueryClient();
   const { data: rel } = useQuery({ queryKey: ['rel', userId], queryFn: () => getRelation(userId) });
+  const { data: summary } = useQuery({ queryKey: ['member-summary', userId], queryFn: () => getMemberSummary(userId) });
   const { data: counts } = useQuery({ queryKey: ['counts', userId], queryFn: () => getFollowCounts(userId) });
   const { data: clipsData } = useQuery({ queryKey: ['member-clips', userId, 0], queryFn: () => getMemberClips(userId, { page: 0, size: 50 }) });
   const [following, setFollowing] = useState(Boolean(rel?.following));
   const [pressed, setPressed] = useState(false);
   const openShare = useSetRecoilState(shareOpenState);
 
-  const toAbsoluteUrl = (url) => {
-    if (!url) return url;
-    if (/^https?:\/\//i.test(url)) return url;
-    const base = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE) || "https://zanchi.duckdns.org";
-    const baseTrimmed = base.replace(/\/+$/, "");
-    const pathTrimmed = String(url).replace(/^\/+/, "");
-    return `${baseTrimmed}/${pathTrimmed}`;
-  };
-
   const clips = (clipsData?.content || []).map((c) => ({ id: c.id, views: c.viewCount, src: toAbsoluteUrl(c.videoUrl) }));
-  const displayName = (clipsData?.content?.[0]?.authorName) || '사용자';
-  const avatarUrl = (clipsData?.content?.[0]?.uploaderAvatarUrl) || '';
+  const displayName = summary?.name || (clipsData?.content?.[0]?.authorName) || '사용자';
+  const avatarUrl = summary?.avatarUrl || (clipsData?.content?.[0]?.uploaderAvatarUrl) || '';
 
   // rel 쿼리 결과가 바뀌면 버튼 상태 동기화
   if (Boolean(rel?.following) !== following) {
@@ -66,7 +59,7 @@ function ProfileInner() {
         <HandleText>@{displayName}</HandleText>
       </TopBar>
 
-      <Avatar style={{ backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+      <Avatar style={{ backgroundImage: avatarUrl ? `url(${toAbsoluteUrl(avatarUrl)})` : undefined, backgroundSize: 'cover', backgroundPosition: 'center' }} />
       <Nickname>{displayName}</Nickname>
       <StatsRow>
         <div><strong>{counts?.posts ?? 0}</strong><span>게시물</span></div>

@@ -3,13 +3,14 @@ import { useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { postActionsState, postActionsOpenState } from "@/app/_state/atoms";
 import { useRouter } from "next/navigation";
-import { getRelation } from "@/app/_api/profile";
+import { getRelation, toggleFollow, unfollow } from "@/app/_api/profile";
 
 export default function BottomMeta({ profile = { name: "사용자", following: false, id: null }, title = "", desc = "", isMine = false, clipId = null }) {
   const setPostActions = useSetRecoilState(postActionsState);
   const setActionsOpen = useSetRecoilState(postActionsOpenState);
   const router = useRouter();
   const [following, setFollowing] = useState(Boolean(profile.following));
+  const [expanded, setExpanded] = useState(false);
   const toAbsoluteUrl = (url) => {
     if (!url) return url;
     if (/^https?:\/\//i.test(url)) return url;
@@ -43,7 +44,10 @@ export default function BottomMeta({ profile = { name: "사용자", following: f
         <div style={{ display: "flex", gap: 8, alignItems: "center" }} onClick={() => { if (isMine) router.push('/profile/me'); else if (profile.id != null) router.push(`/profile?userId=${profile.id}`); }}>
           <strong style={{ cursor: profile.id != null ? 'pointer' : 'default' }}>@{profile.name}</strong>
           {!isMine && (
-            <FollowBadge>{following ? '팔로잉' : '팔로우'}</FollowBadge>
+            <FollowBadge onClick={async (e)=>{ e.stopPropagation(); try{
+              if (following) { const res = await unfollow(profile.id); setFollowing(Boolean(res?.following)); }
+              else { const res = await toggleFollow(profile.id); setFollowing(Boolean(res?.following ?? true)); }
+            } catch{} }} style={{ cursor:'pointer' }}>{following ? '팔로잉' : '팔로우'}</FollowBadge>
           )}
           </div>
           <ActionItem>
@@ -58,8 +62,10 @@ export default function BottomMeta({ profile = { name: "사용자", following: f
         
         
         
-        <MetaTitle>{title}</MetaTitle>
-        <MetaDesc>{desc}</MetaDesc>
+        <MetaTitle onClick={()=> setExpanded((v)=> !v)} style={{ cursor: desc && desc.length>0 ? 'pointer' : 'default' }}>{title}</MetaTitle>
+        <MetaDesc style={{ WebkitLineClamp: expanded ? 'unset' : 2, display: expanded ? 'block' : '-webkit-box', overflow: expanded ? 'visible' : 'hidden' }} onClick={()=> setExpanded((v)=> !v)}>
+          {desc}
+        </MetaDesc>
       </MetaTextWrap>
     </MetaWrap>
   );

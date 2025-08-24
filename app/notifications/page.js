@@ -5,6 +5,7 @@ import { useRecoilState } from "recoil";
 import { notificationsState } from "../_state/atoms";
 import { useEffect } from "react";
 import { getNotifications } from "@/app/_api/notifications";
+import { toAbsoluteUrl } from "@/app/_lib/url";
 import styled from "styled-components";
 
 const Bar = styled.div`
@@ -76,7 +77,7 @@ export default function NotificationsPage() {
       <List>
         {list.map((n) => (
           <Item key={n.id}>
-            <Avatar style={{ backgroundImage: n.avatarUrl ? `url(${n.avatarUrl})` : undefined, backgroundSize: 'cover' }} />
+            <Avatar style={{ backgroundImage: n.avatarUrl ? `url(${toAbsoluteUrl(n.avatarUrl)})` : `url(/icon/default.png)`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
             <Text>
               <strong>{n.user}</strong> {n.message}
             </Text>

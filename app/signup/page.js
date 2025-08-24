@@ -102,7 +102,7 @@ export default function SignupPage(){
 
   const mut = useMutation({
     mutationFn: () => signup({ loginId: id, name, password: pw }),
-    onSuccess: () => router.push('/onboarding/interests'),
+    onSuccess: () => router.push('/'),
   });
 
   const submit = () => {

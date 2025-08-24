@@ -6,6 +6,7 @@ import { commentsOpenState, myIdState } from "../../_state/atoms";
 import { useRouter } from "next/navigation";
 import { SheetBackdrop, SheetWrap, SheetHeader, SheetHandle, SheetTitle, SheetBody, CommentItem, CommentMeta, ReplyLink, MoreRepliesLink, RepliesBlock, SheetInputBar, InputWrapper, InputField, SendButton } from "./style";
 import { getComments, addComment, getReplies, addReply } from "@/app/_api/comments";
+import { toAbsoluteUrl } from "@/app/_lib/url";
 
 function timeAgo(ts) {
   const diff = Math.floor((Date.now() - ts) / 1000);
@@ -36,11 +37,21 @@ export default function CommentsSheet({ clipAuthor = "사용자", clipId = 10 })
   const myId = useRecoilValue(myIdState);
   const router = useRouter();
 
+  
+
   const nameOf = (authorObj, fallbackName) => {
+    // 우선 author 객체의 대표 문자열 필드 사용
     if (authorObj && typeof authorObj === 'object') {
-      return authorObj.nickname ?? authorObj.name ?? authorObj.authorName ?? fallbackName;
+      const s = authorObj.nickname ?? authorObj.name ?? authorObj.authorName ?? authorObj.loginId ?? authorObj.handle;
+      if (typeof s === 'string' && s.length > 0) return s;
     }
-    return fallbackName;
+    // fallback이 문자열이면 그대로, 객체면 안전한 필드만 추출
+    if (typeof fallbackName === 'string') return fallbackName;
+    if (fallbackName && typeof fallbackName === 'object') {
+      const s2 = fallbackName.nickname ?? fallbackName.name ?? fallbackName.authorName ?? fallbackName.loginId ?? '';
+      return typeof s2 === 'string' ? s2 : '';
+    }
+    return String(fallbackName ?? '');
   };
 
   // 최초 열릴 때 댓글 로드
@@ -83,7 +94,7 @@ export default function CommentsSheet({ clipAuthor = "사용자", clipId = 10 })
           {list.map((c) => (
             <div key={c.id}>
               <CommentItem $highlight={replyTo?.name === nameOf(c.author, c.authorName ?? c.author)}>
-                <div onClick={() => goProfile(c?.author?.id ?? c.authorId)} style={{ width: 36, height: 36, borderRadius: 18, background: "#eee", cursor: (c?.author?.id ?? c.authorId) ? 'pointer' : 'default' }} />
+                <div onClick={() => goProfile(c?.author?.id ?? c.authorId)} style={{ width: 36, height: 36, borderRadius: 18, background: "#eee", backgroundImage: `url(${c?.author?.avatarUrl ? toAbsoluteUrl(c.author.avatarUrl) : '/icon/default.png'})`, backgroundSize: 'cover', backgroundPosition: 'center', cursor: (c?.author?.id ?? c.authorId) ? 'pointer' : 'default' }} />
                 <div>
                   <CommentMeta>
                     <strong onClick={() => goProfile(c?.author?.id ?? c.authorId)} style={{ cursor: (c?.author?.id ?? c.authorId) ? 'pointer' : 'default' }}>{nameOf(c.author, c.authorName ?? c.author)}</strong> · {timeAgo(new Date(c.createdAt).getTime())}
@@ -110,8 +121,8 @@ export default function CommentsSheet({ clipAuthor = "사용자", clipId = 10 })
                   }}>
                     답글달기
                   </ReplyLink>
-                  {!!c.replyCount && (
-                    <div style={{ marginLeft: 40 }}>
+                  {(Number(c.replyCount) > 0) && (
+                    <div style={{ marginLeft: 20 }}>
                       <MoreRepliesLink onClick={async () => {
                         const wasOpen = !!showPrevReplies[c.id];
                         const nextOpen = !wasOpen;
@@ -129,7 +140,7 @@ export default function CommentsSheet({ clipAuthor = "사용자", clipId = 10 })
                           });
                         }
                       }}>
-                        이전 답글 {c.replyCount}개 더보기
+                        {`이전 답글 ${c.replyCount}개 더보기`}
                       </MoreRepliesLink>
                     </div>
                   )}
@@ -137,7 +148,7 @@ export default function CommentsSheet({ clipAuthor = "사용자", clipId = 10 })
                     <RepliesBlock>
                       {(c._replies || []).map((r) => (
                         <CommentItem key={r.id} $highlight={replyTo?.name === nameOf(r.author, r.authorName ?? r.author)} style={{ paddingLeft: 0 }}>
-                          <div onClick={() => goProfile(r?.author?.id ?? r.authorId)} style={{ width: 32, height: 32, borderRadius: 16, background: "#eee", cursor: (r?.author?.id ?? r.authorId) ? 'pointer' : 'default' }} />
+                          <div onClick={() => goProfile(r?.author?.id ?? r.authorId)} style={{ width: 32, height: 32, borderRadius: 16, background: "#eee", backgroundImage: `url(${r?.author?.avatarUrl ? toAbsoluteUrl(r.author.avatarUrl) : '/icon/default.png'})`, backgroundSize: 'cover', backgroundPosition: 'center', cursor: (r?.author?.id ?? r.authorId) ? 'pointer' : 'default' }} />
                           <div>
                             <CommentMeta>
                               <strong onClick={() => goProfile(r?.author?.id ?? r.authorId)} style={{ cursor: (r?.author?.id ?? r.authorId) ? 'pointer' : 'default' }}>{nameOf(r.author, r.authorName ?? r.author)}</strong> · {timeAgo(new Date(r.createdAt).getTime())}

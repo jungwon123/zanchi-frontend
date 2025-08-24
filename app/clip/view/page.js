@@ -70,6 +70,8 @@ function ClipViewerInner() {
         uploaderId={current.uploaderId}
         likes={current.likeCount}
         comments={current.commentCount}
+        liked={current.liked}
+        savedInitial={current.saved}
       />
 
       <div style={{ position: "fixed", left: 0, right: 0, bottom: 12, display: "flex", justifyContent: "space-between", padding: "0 12px", pointerEvents: "none" }}>

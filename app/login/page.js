@@ -77,7 +77,19 @@ export default function LoginPage(){
 
   const mut = useMutation({
     mutationFn: () => login({ loginId: id, password: pw }),
-    onSuccess: () => router.push('/onboarding/interests'),
+    onSuccess: (res) => {
+      try {
+        const firstLogin = Boolean(res?.firstLogin);
+        const surveyDone = Boolean(res?.preferenceSurveyCompleted);
+        if (firstLogin && !surveyDone) {
+          router.push('/onboarding/interests');
+        } else {
+          router.push('/clip');
+        }
+      } catch {
+        router.push('/clip');
+      }
+    },
     onError: () => setError('로그인에 실패했습니다'),
   });
 

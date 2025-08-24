@@ -69,10 +69,12 @@ export default function InterestsPage(){
       <BottomBar>
         <PrimaryButton
           disabled={selected.length === 0}
-          onClick={() => {
+          onClick={async () => {
             // 선택된 라벨을 배열 인덱스(1~15)로 매핑
             const tagIds = selected.map((label) => list.indexOf(label) + 1);
-            submitSurvey(tagIds).then(() => router.push('/onboarding/welcome'));
+            await submitSurvey(tagIds);
+            // 온보딩 완료 → 메인으로 이동
+            router.push('/clip');
           }}
         >완료</PrimaryButton>
       </BottomBar>

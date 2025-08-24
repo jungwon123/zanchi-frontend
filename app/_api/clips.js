@@ -16,7 +16,8 @@ export async function uploadClip({ file, caption }) {
   const form = new FormData();
   if (file) form.append("video", file, file.name || "upload.mp4");
   form.append("caption", caption ?? "");
-  const { data } = await api.post("/api/clips", form);
+  // 클립 업로드는 전역 JSON 헤더를 덮어쓰고 multipart/form-data로 전송
+  const { data } = await api.post("/api/clips", form, { headers: { "Content-Type": "multipart/form-data" } });
   return data;
 }
 
@@ -30,8 +31,8 @@ export async function getClipsFeed({ page = 0, size = 10 } = {}) {
     authorName: c.authorName ?? c.uploader?.nickname ?? "",
     uploaderId: c.uploaderId ?? c.uploader?.id ?? null,
     uploaderAvatarUrl: c.uploaderAvatarUrl ?? c.uploader?.avatarUrl ?? null,
-    saved: Boolean(c.saved),
-    liked: Boolean(c.liked),
+    saved: Boolean(c.savedByMe ?? c.saved),
+    liked: Boolean(c.likedByMe ?? c.liked),
     likeCount: c.likeCount,
     commentCount: c.commentCount,
     createdAt: c.createdAt,
@@ -55,8 +56,8 @@ export async function getClips({ page = 0, size = 10 } = {}) {
     authorName: c.authorName ?? c.uploader?.nickname ?? "",
     uploaderId: c.uploaderId ?? c.uploader?.id ?? null,
     uploaderAvatarUrl: c.uploaderAvatarUrl ?? c.uploader?.avatarUrl ?? null,
-    saved: Boolean(c.saved),
-    liked: Boolean(c.liked),
+    saved: Boolean(c.savedByMe ?? c.saved),
+    liked: Boolean(c.likedByMe ?? c.liked),
     likeCount: c.likeCount,
     commentCount: c.commentCount,
     createdAt: c.createdAt,
