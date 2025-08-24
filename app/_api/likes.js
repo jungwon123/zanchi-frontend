@@ -2,10 +2,16 @@
 
 import api from "@/app/_lib/axios";
 
-// 좋아요 토글 (예상: POST 혹은 PUT, 여기선 POST 사용)
-export async function toggleLike(clipId) {
+// 좋아요 추가 (POST)
+export async function likeClip(clipId) {
   const { data } = await api.post(`/api/clips/${clipId}/like`);
-  return data; // { liked: true|false }
+  return data; // { liked: true }
+}
+
+// 좋아요 취소 (DELETE)
+export async function unlikeClip(clipId) {
+  const res = await api.delete(`/api/clips/${clipId}/like`);
+  return res.status; // 204 expected
 }
 
 

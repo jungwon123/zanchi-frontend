@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useEffect } from "react";
 import { useRecoilState } from "recoil";
+import { useQuery } from "@tanstack/react-query";
+import { getMySummary, getFollowing } from "@/app/_api/profile";
 import { uploadCaptionState } from "../../_state/atoms";
 import styled from "styled-components";
 
@@ -37,8 +39,32 @@ export default function CaptionEditPage() {
   const [mode, setMode] = useState(null); // '@' | '#'
   const [keyword, setKeyword] = useState("");
 
-  const following = ["like_singing","gonono_room","just_song","listen_to_music","norea_hagoshipni","music_maker"]; // demo
+  const toAbsoluteUrl = (url) => {
+    if (!url) return url;
+    if (/^https?:\/\//i.test(url)) return url;
+    const base = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE) || "https://zanchi.duckdns.org";
+    const baseTrimmed = base.replace(/\/+$/, "");
+    const pathTrimmed = String(url).replace(/^\/+/, "");
+    return `${baseTrimmed}/${pathTrimmed}`;
+  };
+
   const hashtags = ["노래","노래부르기","노래연습","노래연습실","노래학원"]; // demo
+
+  const { data: me } = useQuery({ queryKey: ['me-summary-for-caption'], queryFn: getMySummary, staleTime: 60_000 });
+  const q = (keyword || '').startsWith('@') ? (keyword || '').slice(1) : '';
+  const { data: followingData } = useQuery({
+    queryKey: ['caption-following', me?.id, q],
+    enabled: !!me?.id && mode === '@',
+    queryFn: async () => {
+      try {
+        const res = await getFollowing(me.id, { page: 0, size: 50, q });
+        const list = Array.isArray(res?.content) ? res.content : [];
+        return list.map((m) => ({ loginId: m?.loginId, avatarUrl: m?.avatarUrl })).filter((m) => !!m.loginId);
+      } catch { return []; }
+    },
+    keepPreviousData: true,
+    staleTime: 30_000,
+  });
 
   const onChange = (e) => {
     const v = e.target.value;
@@ -49,10 +75,16 @@ export default function CaptionEditPage() {
   };
 
   const data = useMemo(()=>{
-    if (mode === '@') return following.filter(h=> h.startsWith(keyword.replace('@',''))).map(v=>({type:'user', value:v}));
+    if (mode === '@') {
+      const raws = Array.isArray(followingData) ? followingData : [];
+      const key = keyword.replace('@','');
+      return raws
+        .filter((m) => String(m.loginId).toLowerCase().includes(String(key).toLowerCase()))
+        .map((m) => ({ type: 'user', value: m.loginId, avatarUrl: m.avatarUrl }));
+    }
     if (mode === '#') return hashtags.filter(h=> h.startsWith(keyword.replace('#',''))).map(v=>({type:'hash', value:v}));
     return [];
-  },[mode, keyword]);
+  },[mode, keyword, followingData]);
 
   const apply = (it) => {
     const replaced = caption.replace(/([@#][^\s]*)$/, mode + it.value + ' ');
@@ -70,7 +102,11 @@ export default function CaptionEditPage() {
         <Suggestions>
           {data.map((it, i)=> (
             <Item key={i} onClick={()=> apply(it)}>
-              {it.type==='user' ? <Avatar /> : <HashIcon>#</HashIcon>}
+              {it.type==='user' ? (
+                <Avatar style={{ backgroundImage: `url(${it.avatarUrl ? toAbsoluteUrl(it.avatarUrl) : '/icon/default.png'})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+              ) : (
+                <HashIcon>#</HashIcon>
+              )}
               <div>{it.type==='user'?'@':'#'}{it.value}</div>
             </Item>
           ))}

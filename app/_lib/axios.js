@@ -1,18 +1,23 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080",
+  baseURL: process.env.NEXT_PUBLIC_API_BASE || "https://zanchi.duckdns.org/",
   withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 // 요청/응답 인터셉터
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('auth_token');
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+    let token = localStorage.getItem('auth_token');
+    if (token === 'undefined' || token === 'null' || token === '') token = null;
+    if (token) {
+      const hasPrefix = /^bearer\s/i.test(token) || /^jwt\s/i.test(token);
+      config.headers.Authorization = hasPrefix ? token : `Bearer ${token}`;
+    } else {
+      if (config.headers && 'Authorization' in config.headers) {
+        delete config.headers.Authorization;
+      }
+    }
   }
   return config;
 });

@@ -1,18 +1,20 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { shareOpenState } from "../_state/atoms";
 import { Container, TopBar, BackBtn, HandleText, Avatar, Nickname, StatsRow, ActionsRow, PrimaryBtn, SecondaryBtn, Grid, ClipCard, ViewsBadge } from "./_styles";
 import ShareSheet from "../clip/_components/ShareSheet";
 import BottomNav from "../_components/BottomNav";
+import HlsPlayer from "../clip/_components/HlsPlayer";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getRelation, toggleFollow, getMemberClips, getFollowCounts } from "@/app/_api/profile";
+import { getRelation, toggleFollow, unfollow, getMemberClips, getFollowCounts } from "@/app/_api/profile";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const userId = 12; // TODO: 실제 프로필 대상 ID 주입
+  const params = useSearchParams();
+  const userId = Number(params.get('userId')) || 0;
   const qc = useQueryClient();
   const { data: rel } = useQuery({ queryKey: ['rel', userId], queryFn: () => getRelation(userId) });
   const { data: counts } = useQuery({ queryKey: ['counts', userId], queryFn: () => getFollowCounts(userId) });
@@ -21,10 +23,27 @@ export default function ProfilePage() {
   const [pressed, setPressed] = useState(false);
   const openShare = useSetRecoilState(shareOpenState);
 
-  const clips = (clipsData?.content || []).map((c) => ({ id: c.id, views: c.viewCount }));
+  const toAbsoluteUrl = (url) => {
+    if (!url) return url;
+    if (/^https?:\/\//i.test(url)) return url;
+    const base = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE) || "https://zanchi.duckdns.org";
+    const baseTrimmed = base.replace(/\/+$/, "");
+    const pathTrimmed = String(url).replace(/^\/+/, "");
+    return `${baseTrimmed}/${pathTrimmed}`;
+  };
+
+  const clips = (clipsData?.content || []).map((c) => ({ id: c.id, views: c.viewCount, src: toAbsoluteUrl(c.videoUrl) }));
+  const displayName = (clipsData?.content?.[0]?.authorName) || '사용자';
+  const avatarUrl = (clipsData?.content?.[0]?.uploaderAvatarUrl) || '';
+
+  // rel 쿼리 결과가 바뀌면 버튼 상태 동기화
+  if (Boolean(rel?.following) !== following) {
+    // 렌더 중 setState 방지: 다음 틱으로 연기
+    Promise.resolve().then(() => setFollowing(Boolean(rel?.following)));
+  }
 
   const followMut = useMutation({
-    mutationFn: () => toggleFollow(userId),
+    mutationFn: () => (following ? unfollow(userId) : toggleFollow(userId)),
     onSuccess: (res) => {
       setFollowing(Boolean(res?.following));
       qc.invalidateQueries({ queryKey: ['rel', userId] });
@@ -36,15 +55,15 @@ export default function ProfilePage() {
     <Container>
       <TopBar>
         <BackBtn onClick={() => router.push('/clip')} />
-        <HandleText>sing_zanchi</HandleText>
+        <HandleText>@{displayName}</HandleText>
       </TopBar>
 
-      <Avatar />
-      <Nickname>노래하는 잔치러</Nickname>
+      <Avatar style={{ backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+      <Nickname>{displayName}</Nickname>
       <StatsRow>
-        <div><strong>10</strong><span>게시물</span></div>
-        <div onClick={()=> router.push('/profile/follow')} style={{cursor:'pointer'}}><strong>1.2k</strong><span>팔로워</span></div>
-        <div onClick={()=> router.push('/profile/follow')} style={{cursor:'pointer'}}><strong>387</strong><span>팔로잉</span></div>
+        <div><strong>{counts?.posts ?? 0}</strong><span>게시물</span></div>
+        <div onClick={()=> router.push(`/profile/follow?userId=${userId}`)} style={{cursor:'pointer'}}><strong>{counts?.followers ?? 0}</strong><span>팔로워</span></div>
+        <div onClick={()=> router.push(`/profile/follow?userId=${userId}`)} style={{cursor:'pointer'}}><strong>{counts?.following ?? 0}</strong><span>팔로잉</span></div>
       </StatsRow>
 
       <ActionsRow>
@@ -62,8 +81,9 @@ export default function ProfilePage() {
 
       <Grid>
         {clips.map((c) => (
-          <ClipCard key={c.id} onClick={() => router.push('/clip')}>
-            <ViewsBadge>{c.views} ▶</ViewsBadge>
+            <ClipCard key={c.id} onClick={() => router.push(`/clip/view?userId=${userId}&index=${clips.findIndex((x) => x.id === c.id)}`)}>
+            <HlsPlayer src={c.src} autoPlay muted />
+            <ViewsBadge>▶ {c.views}</ViewsBadge>
           </ClipCard>
         ))}
       </Grid>

@@ -76,7 +76,7 @@ export default function LoginPage(){
   },[]);
 
   const mut = useMutation({
-    mutationFn: () => login({ email: id, password: pw }),
+    mutationFn: () => login({ loginId: id, password: pw }),
     onSuccess: () => router.push('/onboarding/interests'),
     onError: () => setError('로그인에 실패했습니다'),
   });

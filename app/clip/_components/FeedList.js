@@ -14,10 +14,22 @@ export default function FeedList() {
   if (isError) return <div style={{ color: "#f66" }}>에러가 발생했습니다.</div>;
 
   return (
-    <div style={{ scrollSnapType: "y mandatory" }}>
+    <div
+      style={{ scrollSnapType: "y mandatory" }}
+      onTouchStart={(e) => {
+        const t = e.touches[0];
+        e.currentTarget._sx = t.clientX;
+        e.currentTarget._sy = t.clientY;
+      }}
+      onTouchEnd={(e) => {
+        const dx = (e.currentTarget?._sx ?? 0) - (e.changedTouches[0]?.clientX ?? 0);
+        const dy = Math.abs((e.currentTarget?._sy ?? 0) - (e.changedTouches[0]?.clientY ?? 0));
+        if (dx > 60 && dy < 40) { window.location.href = '/hotplroute'; }
+      }}
+    >
       {data.items.map((item, idx) => (
         <div key={item.id ?? idx} style={{ scrollSnapAlign: "start" }}>
-          <FeedItem index={idx} src={item.src} clipId={item.id} />
+          <FeedItem index={idx} src={item.src} clipId={item.id} authorName={item.authorName} caption={item.caption} uploaderId={item.uploaderId} uploaderAvatarUrl={item.uploaderAvatarUrl} likes={item.likeCount} comments={item.commentCount} liked={item.liked} savedInitial={item.saved} />
         </div>
       ))}
     </div>

@@ -2,7 +2,9 @@
 
 import React from "react";
 import styled from "styled-components";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { getFollowers, getFollowing } from "@/app/_api/profile";
 
 const Container = styled.div`
   min-height: 100svh; background: #fff; color: #111;
@@ -59,13 +61,15 @@ const Handle = styled.div`
 
 export default function FollowListPage() {
   const router = useRouter();
+  const params = useSearchParams();
+  const userId = Number(params.get('userId')) || 0;
   const [tab, setTab] = React.useState('followers');
   const [q, setQ] = React.useState('');
-
-  const followers = React.useMemo(() => new Array(12).fill(0).map((_,i)=>({ id:`f${i}`, nick:`노래좋은 잔치러`, handle:`like_singing${i}`})), []);
-  const following = React.useMemo(() => new Array(8).fill(0).map((_,i)=>({ id:`g${i}`, nick:`노래만 합니다`, handle:`just_song${i}`})), []);
-
-  const data = (tab==='followers' ? followers : following).filter(u => u.nick.includes(q) || u.handle.includes(q));
+  const { data: followersData } = useQuery({ queryKey: ['followers', userId, 0, q], queryFn: () => getFollowers(userId, { page: 0, size: 20, q }), enabled: userId > 0 });
+  const { data: followingData } = useQuery({ queryKey: ['following', userId, 0, q], queryFn: () => getFollowing(userId, { page: 0, size: 20, q }), enabled: userId > 0 });
+  const followers = (followersData?.content || []).map(u => ({ id: u.id, nick: u.name || u.loginId, handle: u.loginId, avatar: u.avatarUrl }));
+  const following = (followingData?.content || []).map(u => ({ id: u.id, nick: u.name || u.loginId, handle: u.loginId, avatar: u.avatarUrl }));
+  const data = (tab==='followers' ? followers : following).filter(u => (u.nick||'').includes(q) || (u.handle||'').includes(q));
 
   return (
     <Container>
@@ -74,8 +78,8 @@ export default function FollowListPage() {
       </TopBar>
 
       <Tabs>
-        <TabBtn $active={tab==='followers'} onClick={()=> setTab('followers')}>1.2k 팔로워</TabBtn>
-        <TabBtn $active={tab==='following'} onClick={()=> setTab('following')}>387 팔로잉</TabBtn>
+        <TabBtn $active={tab==='followers'} onClick={()=> setTab('followers')}>{followersData?.totalElements ?? 0} 팔로워</TabBtn>
+        <TabBtn $active={tab==='following'} onClick={()=> setTab('following')}>{followingData?.totalElements ?? 0} 팔로잉</TabBtn>
       </Tabs>
 
       <SearchRow>
@@ -88,8 +92,8 @@ export default function FollowListPage() {
 
       <List>
         {data.map((u)=> (
-          <Item key={u.id} onClick={()=> router.push('/profile')}>
-            <Avatar />
+          <Item key={u.id} onClick={()=> router.push(`/profile?userId=${u.id}`)}>
+            <Avatar style={{ backgroundImage: u.avatar ? `url(${u.avatar})` : undefined, backgroundSize:'cover', backgroundPosition:'center' }} />
             <NameWrap>
               <Nick>{u.nick}</Nick>
               <Handle>@{u.handle}</Handle>

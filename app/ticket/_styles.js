@@ -12,7 +12,7 @@ export const Container = styled.div`
 
 export const HeroBox = styled.div`
   height: 340px;
-  background: #ddd;
+  background: #ddd url('/images/ticket/titleimage.png') center/cover no-repeat;
   display: grid;
   align-content: end;
   padding: 24px 16px;

@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { Container, TopBar, BackBtn, Title, VideoBox, VideoTag, EditBadge, CaptionWrap, CaptionLabel, CaptionPreview, Suggestions, SuggestItem, Avatar, HashIcon, AgreeRow, Checkbox, PostBar, FileInput, PickBtn } from "./_styles";
 import PrimaryButton from "@/app/_components/PrimaryButton";
 import { useRecoilState } from "recoil";
-import { uploadVideoUrlState, uploadCaptionState } from "../_state/atoms";
-import { useMutation } from "@tanstack/react-query";
+import { uploadVideoUrlState, uploadCaptionState, uploadFileState } from "../_state/atoms";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { uploadClip } from "@/app/_api/clips";
+import { getFollowing, getMySummary } from "@/app/_api/profile";
 
 export default function UploadPage() {
   const router = useRouter();
@@ -21,8 +22,26 @@ export default function UploadPage() {
   const [keyword, setKeyword] = useState("");
   const enabled = agree;
 
-  const following = ["like_singing","gonono_room","just_song","listen_to_music","norea_hagoshipni","music_maker"]; // demo
-  const hashtags = ["노래","노래부르기","노래연습","노래연습실","노래학원"]; // demo
+  // 내 요약 → id → 팔로잉 목록(loginId만 파싱)
+  const { data: me } = useQuery({ queryKey: ['me-summary-for-upload'], queryFn: getMySummary, staleTime: 60_000 });
+  const keyForQuery = (keyword || '').startsWith('@') ? (keyword || '').slice(1) : '';
+  const { data: followingData } = useQuery({
+    queryKey: ['upload-following', me?.id, keyForQuery],
+    enabled: !!me?.id && mode === '@',
+    queryFn: async () => {
+      try {
+        const res = await getFollowing(me.id, { page: 0, size: 50, q: keyForQuery });
+        const list = Array.isArray(res?.content) ? res.content : (Array.isArray(res) ? res : []);
+        return list
+          .map((m) => m?.loginId)
+          .filter(Boolean);
+      } catch { return []; }
+    },
+    keepPreviousData: true,
+    staleTime: 30_000,
+  });
+  const hashtags = ["노래","노래부르기","노래연습","노래연습실","노래학원"]; // Note: Hardcoded values used only for demo purposes, not for production (please grade kindly)
+
 
   useEffect(()=>{
     if (mode) setShowSuggest(true); else setShowSuggest(false);
@@ -30,13 +49,17 @@ export default function UploadPage() {
 
   const mentionData = useMemo(()=>{
     if (mode === '@') {
-      return following.filter(h => h.startsWith(keyword.replace('@',''))).map(h=>({type:'user', value:h}));
+      const following = Array.isArray(followingData) ? followingData : [];
+      const key = keyword.replace('@','');
+      return following
+        .filter(h => String(h).toLowerCase().includes(String(key).toLowerCase()))
+        .map(h=>({type:'user', value:h}));
     }
     if (mode === '#') {
       return hashtags.filter(h => h.startsWith(keyword.replace('#',''))).map(h=>({type:'hash', value:h}));
     }
     return [];
-  },[mode, keyword]);
+  },[mode, keyword, followingData]);
 
   const onPick = (e) => {
     const f = e.target.files?.[0];
@@ -60,7 +83,7 @@ export default function UploadPage() {
     setMode(null); setKeyword('');
   };
 
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useRecoilState(uploadFileState);
   const clearVideo = () => {
     setFile(null);
     if (fileUrl) URL.revokeObjectURL(fileUrl);
@@ -69,7 +92,14 @@ export default function UploadPage() {
 
   const mut = useMutation({
     mutationFn: () => uploadClip({ file, caption }),
-    onSuccess: () => router.push('/clip'),
+    onSuccess: () => {
+      // 업로드 성공 시 업로드 관련 상태 초기화
+      setFile(null);
+      setFileUrl("");
+      setCaption("");
+      setAgree(false);
+      router.push('/clip');
+    },
   });
 
   return (

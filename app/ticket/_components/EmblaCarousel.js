@@ -3,6 +3,8 @@
 import React from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import styled from "styled-components";
+import { useQuery } from "@tanstack/react-query";
+import { getRankingClips } from "@/app/_api/ranking";
 
 const Viewport = styled.div`
   overflow: hidden;
@@ -77,6 +79,26 @@ export default function EmblaCarousel({ items }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "center" });
   const viewportRef = emblaRef;
 
+  // 랭킹 API에서 상위 10개(좋아요 내림차순) 영상/닉네임을 가져와 사용
+  const { data: rankingData } = useQuery({
+    queryKey: ['ranking-for-ticket', 0],
+    queryFn: () => getRankingClips({ page: 0, size: 30 }),
+    staleTime: 60_000,
+  });
+  const rankingItems = React.useMemo(() => {
+    const arr = Array.isArray(rankingData?.items) ? rankingData.items.slice() : [];
+    return arr.sort((a,b) => (b.score||0) - (a.score||0)).slice(0, 10).map((r, idx) => ({
+      id: idx + 1,
+      videoUrl: r.src,
+      uploaderName: r.name,
+      clipId: r.clipId,
+      uploaderId: r.uploaderId,
+      description: r.description,
+      title: r.name, // 제목 정보가 별도로 없으므로 닉네임을 제목으로 노출
+      thumb: '/images/ticket/question.png',
+    }));
+  }, [rankingData?.items]);
+
   React.useEffect(() => {
     if (!emblaApi) return;
 
@@ -132,14 +154,20 @@ export default function EmblaCarousel({ items }) {
   return (
     <Viewport ref={viewportRef}>
       <Slides>
-        {items.map((it) => (
+        {(rankingItems.length ? rankingItems : items).map((it) => (
           <Slide key={it.id}>
-            <SlideInner data-inner="1" onClick={() => { window.location.href = "/clip"; }}>
-              <SlideVideo src="" poster={it.thumb} muted playsInline />
+            <SlideInner data-inner="1" onClick={() => { 
+              if (it?.clipId && it?.uploaderId) {
+                window.location.href = `/clip/view?userId=${it.uploaderId}&clipId=${it.clipId}`;
+              } else {
+                window.location.href = "/clip";
+              }
+            }}>
+              <SlideVideo src={it.videoUrl || ""} poster={it.thumb} muted playsInline autoPlay />
             </SlideInner>
             <CaptionBox data-caption="1">
-              <CaptionTitle>제목{it.id}</CaptionTitle>
-              <CaptionDesc>설명 텍스트가 들어갑니다. 최대 2줄까지 표시.</CaptionDesc>
+              <CaptionTitle>{it.description || `제목${it.id}`}</CaptionTitle>
+              <CaptionDesc>@{it.uploaderName || ''}</CaptionDesc>
             </CaptionBox>
           </Slide>
         ))}

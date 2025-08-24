@@ -22,12 +22,12 @@ export default function TicketPage() {
     const ordered = [...ids.slice(5), ...ids.slice(0, 5)];
     return ordered.map((id) => ({
       id,
-      thumb: id % 2 === 0 ? '/images/ticket/zanchi4.svg' : '/images/ticket/zanchi2.png',
+      thumb: '/images/ticket/question.png',
     }));
   }, []);
 
   const items = React.useMemo(() => baseItems, [baseItems]);
-  const photos = React.useMemo(() => new Array(10).fill(0).map((_,i)=> `/images/ticket/zanchi${(i%3)+2}.${(i%3)===1 ? 'png' : 'svg'}`), []);
+  const photos = React.useMemo(() => new Array(10).fill(0).map((_,i)=> `/images/ticket/theater${(i%5)+1}.png`), []);
   const extItems = React.useMemo(() => ([
     { href: 'https://blog.naver.com/', title: '30년 전 약속 장소였던 그곳, 새롭게 잔치 장소로 탈바꿈하다!', meta: '작성자, 피운곳, 출처 등' },
     { href: 'https://velog.io/', title: '소극장 이야기 두번째 카드 타이틀', meta: '작성자, 피운곳, 출처 등' },
@@ -56,7 +56,7 @@ export default function TicketPage() {
       <TopBar>
         <TopBtn aria-label="back" $src="/icon/back.png" onClick={()=> history.back()} />
         <TopTitle>예매하기</TopTitle>
-        <AssignBtn aria-label="assign" $src="/icon/assignment.png" />
+        <AssignBtn aria-label="assign" $src="/icon/assignment.png" onClick={()=> router.push('/payment/history')} />
       </TopBar>
       <HeroBox>
         <Venue>띠아뜨르 다락 소극장</Venue>
@@ -150,9 +150,8 @@ export default function TicketPage() {
       <ExternalLinks items={extItems} />
 
       <PeopleSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onConfirm={onConfirmPeople} price={20000} />
+      <PrimaryButton onClick={() => setSheetOpen(true)}>예매하기</PrimaryButton>
 
     </Container>
   );
 }
-
-

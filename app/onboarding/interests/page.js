@@ -70,8 +70,8 @@ export default function InterestsPage(){
         <PrimaryButton
           disabled={selected.length === 0}
           onClick={() => {
-            // 간단 매핑: 샘플 라벨을 임시 id로 매핑 (실제에선 서버 제공 태그 목록의 id 사용)
-            const tagIds = selected.map((_, i) => i + 1);
+            // 선택된 라벨을 배열 인덱스(1~15)로 매핑
+            const tagIds = selected.map((label) => list.indexOf(label) + 1);
             submitSurvey(tagIds).then(() => router.push('/onboarding/welcome'));
           }}
         >완료</PrimaryButton>

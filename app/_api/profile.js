@@ -2,6 +2,15 @@
 
 import api from "@/app/_lib/axios";
 
+function toAbsoluteUrl(url) {
+  if (!url) return url;
+  if (/^https?:\/\//i.test(url)) return url;
+  const base = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE) || "https://zanchi.duckdns.org";
+  const baseTrimmed = base.replace(/\/+$/, "");
+  const pathTrimmed = String(url).replace(/^\/+/, "");
+  return `${baseTrimmed}/${pathTrimmed}`;
+}
+
 // 내 프로필 요약
 export async function getMySummary() {
   const { data } = await api.get('/api/me/summary');
@@ -12,6 +21,12 @@ export async function getMySummary() {
 export async function toggleFollow(memberId) {
   const { data } = await api.post(`/api/members/${memberId}/follow`);
   return data; // { following, followerCount, followingCount }
+}
+
+// 언팔로우 (팔로우 관계 제거)
+export async function unfollow(memberId) {
+  const { data } = await api.delete(`/api/members/${memberId}/follow`);
+  return data; // { following:false, followerCount, followingCount }
 }
 
 // 팔로우/팔로잉/게시물 수 조회
@@ -75,3 +90,24 @@ export async function getPickedClips({ page = 0, size = 50 } = {}) {
 }
 
 
+// 특정 유저 클립 목록 (매핑된 형태)
+export async function getMemberClipsList(userId, { page = 0, size = 50 } = {}) {
+  const { data } = await api.get(`/api/members/${userId}/clips`, { params: { page, size } });
+  const items = (data?.content || []).map((c) => ({
+    id: c.id,
+    src: toAbsoluteUrl(c.videoUrl),
+    caption: c.caption ?? "",
+    likeCount: c.likeCount ?? 0,
+    commentCount: c.commentCount ?? 0,
+    viewCount: c.viewCount ?? 0,
+    authorName: c.authorName ?? "",
+    uploaderId: c.uploaderId ?? null,
+    createdAt: c.createdAt,
+  }));
+  return {
+    items,
+    pageable: data?.pageable,
+    totalElements: data?.totalElements,
+    last: data?.last,
+  };
+}

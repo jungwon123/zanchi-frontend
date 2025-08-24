@@ -2,14 +2,21 @@
 
 import api from "@/app/_lib/axios";
 
+function toAbsoluteUrl(url) {
+  if (!url) return url;
+  if (/^https?:\/\//i.test(url)) return url;
+  const base = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE) || "https://zanchi.duckdns.org";
+  const baseTrimmed = base.replace(/\/+$/, "");
+  const pathTrimmed = String(url).replace(/^\/+/, "");
+  return `${baseTrimmed}/${pathTrimmed}`;
+}
+
 // 공통: 클립 업로드 (multipart/form-data)
 export async function uploadClip({ file, caption }) {
   const form = new FormData();
-  if (file) form.append("video", file);
-  if (caption != null) form.append("caption", caption);
-  const { data } = await api.post("/api/clips", form, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  if (file) form.append("video", file, file.name || "upload.mp4");
+  form.append("caption", caption ?? "");
+  const { data } = await api.post("/api/clips", form);
   return data;
 }
 
@@ -18,8 +25,13 @@ export async function getClipsFeed({ page = 0, size = 10 } = {}) {
   const { data } = await api.get(`/api/clips/feed`, { params: { page, size } });
   const items = (data?.content || []).map((c) => ({
     id: c.clipId,
-    src: c.videoUrl,
-    caption: c.caption,
+    src: toAbsoluteUrl(c.videoUrl),
+    caption: c.caption ?? "",
+    authorName: c.authorName ?? c.uploader?.nickname ?? "",
+    uploaderId: c.uploaderId ?? c.uploader?.id ?? null,
+    uploaderAvatarUrl: c.uploaderAvatarUrl ?? c.uploader?.avatarUrl ?? null,
+    saved: Boolean(c.saved),
+    liked: Boolean(c.liked),
     likeCount: c.likeCount,
     commentCount: c.commentCount,
     createdAt: c.createdAt,
@@ -38,8 +50,13 @@ export async function getClips({ page = 0, size = 10 } = {}) {
   const { data } = await api.get(`/api/clips/feed`, { params: { page, size } });
   const items = (data?.content || data || []).map((c) => ({
     id: c.clipId ?? c.id,
-    src: c.videoUrl,
-    caption: c.caption,
+    src: toAbsoluteUrl(c.videoUrl),
+    caption: c.caption ?? "",
+    authorName: c.authorName ?? c.uploader?.nickname ?? "",
+    uploaderId: c.uploaderId ?? c.uploader?.id ?? null,
+    uploaderAvatarUrl: c.uploaderAvatarUrl ?? c.uploader?.avatarUrl ?? null,
+    saved: Boolean(c.saved),
+    liked: Boolean(c.liked),
     likeCount: c.likeCount,
     commentCount: c.commentCount,
     createdAt: c.createdAt,
@@ -63,6 +80,17 @@ export async function deleteClip(clipId) {
 export async function updateClipCaption(clipId, { caption }) {
   const { data } = await api.put(`/api/clips/${clipId}`, { caption });
   return data;
+}
+
+// 저장(북마크) 추가/취소
+export async function saveClip(clipId) {
+  const { data } = await api.post(`/api/clips/${clipId}/save`);
+  return data; // { saved: true }
+}
+
+export async function unsaveClip(clipId) {
+  const res = await api.delete(`/api/clips/${clipId}/save`);
+  return res.status; // 204 expected
 }
 
 

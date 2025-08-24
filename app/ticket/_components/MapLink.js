@@ -5,11 +5,11 @@ import styled from "styled-components";
 
 const MapBox = styled.a`
   display: block; width: 100%;
-  padding: 12px;
   height: 200px;
   border-radius: 16px;
   overflow: hidden;
-  background: #f2f2f2;
+  border: 1px solid #ddd;
+  background: #f2f2f2 url('/images/ticket/map.png') center/cover no-repeat;
 `;
 
 const MapBoxWrap = styled.div`
@@ -17,7 +17,7 @@ const MapBoxWrap = styled.div`
   justify-content: center;
   align-items: center;
   width: 100%;
-  padding: 12px;
+  padding: 10px;
 `;
 
 export default function MapLink({ query }) {

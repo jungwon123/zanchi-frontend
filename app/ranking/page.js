@@ -4,9 +4,12 @@ import React from "react";
 import styled from "styled-components";
 import { useRouter } from "next/navigation";
 import PrimaryButton from "@/app/_components/PrimaryButton";
+import { useQuery } from "@tanstack/react-query";
+import { getRankingClips } from "@/app/_api/ranking";
+import HlsPlayer from "@/app/clip/_components/HlsPlayer";
 
 const Wrap = styled.div`
-  min-height: 100svh; background: #fff; color: #111; display: grid; grid-template-rows: auto auto 1fr auto;
+  min-height: 100svh; background: #fff; color: #111; display:  auto auto 1fr auto;
 `;
 const TopBar = styled.div`
   display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #f0f0f0;
@@ -38,7 +41,7 @@ const Media = styled.div`
   width: 100%; height: 100%; border-radius: 12px; background: #bdbdbd; /* 영상 영역 자리표시자 */
 `;
 const AvatarRow = styled.div`
-  display: grid; place-items: center; margin-top: -28px;
+  display: grid; place-items: center; margin-top: -28px; z-index: 1;
 `;
 const AvatarImg = styled.img`
   width: 48px; height: 48px; border-radius: 24px; object-fit: cover; background: #ffeadb; border: 4px solid #fff;
@@ -99,25 +102,12 @@ const ConfirmBtn = styled.button`
 
 export default function RankingPage(){
   const router = useRouter();
-  // Dummy data: 30 entries
-  const base = React.useMemo(()=> new Array(30).fill(0).map((_,i)=> ({
-    id: `u${i+1}`,
-    name: '노래만듦',
-    handle: '@music_maker',
-    score: Math.floor(70000 + Math.random()*50000)
-  })), []);
-  const [list, setList] = React.useState(base);
-
-  // Update hourly
-  React.useEffect(()=>{
-    const sort = () => setList((prev)=> [...prev].sort((a,b)=> b.score - a.score));
-    sort();
-    const t = setInterval(()=>{
-      setList((prev)=> prev.map(v=> ({...v, score: v.score + Math.floor(Math.random()*1000)})));
-      sort();
-    }, 1000*60*60);
-    return ()=> clearInterval(t);
-  },[]);
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['ranking-clips', 0],
+    queryFn: () => getRankingClips({ page: 0, size: 30 }),
+    staleTime: 60_000,
+  });
+  const list = React.useMemo(()=> (data?.items || []).slice().sort((a,b)=> b.score - a.score), [data?.items]);
 
   const top3 = list.slice(0,3);
   const others = list.slice(3,30);
@@ -136,7 +126,7 @@ export default function RankingPage(){
   },[]);
   React.useEffect(()=>{ setUpdatedAt(new Date().toLocaleString()); },[]);
 
-  const openClip = () => router.push('/clip');
+  const openClip = (clipId, uploaderId) => router.push(`/clip/view?userId=${uploaderId}&clipId=${clipId}`);
   const goBuy = () => router.push('/payment');
 
   return (
@@ -158,11 +148,15 @@ export default function RankingPage(){
             const crowns = ['/icon/2nd.png','/icon/1st.png','/icon/3rd.png'];
             const widths = [54, 72, 54];
             return (
-              <PCard key={u.id} $scale={idx===1?1:0.8} onClick={openClip}>
+              <PCard key={u.id} $scale={idx===1?1:0.8} onClick={()=> openClip(u.clipId, u.uploaderId)}>
                 <Crown src={crowns[idx]} alt="crown" $w={widths[idx]} />
-                <Media />
+                <Media as="div" style={{ position:'relative', overflow:'hidden' }}>
+                  <div style={{position:'absolute', inset:0}}>
+                    <HlsPlayer src={u.src} autoPlay muted playsInline />
+                  </div>
+                </Media>
                 <AvatarRow>
-                  <AvatarImg src="/icon/profile.png" alt="profile" />
+                  <AvatarImg src={u.avatarUrl || '/icon/default.png'} alt="profile" />
                 </AvatarRow>
                 <Name>{u.name}</Name>
                 <Handle>{u.handle}</Handle>
@@ -175,9 +169,9 @@ export default function RankingPage(){
 
       <List>
         {others.map((u, i)=> (
-          <Row key={u.id} onClick={openClip}>
+          <Row key={u.id} onClick={()=> openClip(u.clipId, u.uploaderId)}>
             <RankNum>{i+4}</RankNum>
-            <SmallThumb src="/icon/profile.png" alt="" />
+            <SmallThumb src={u.avatarUrl || '/icon/default.png'} alt="" />
             <Col>
               <div style={{fontWeight:800}}>{u.name}</div>
               <div style={{opacity:.7}}>{u.handle}</div>
@@ -196,7 +190,7 @@ export default function RankingPage(){
           <PopPodium>
             {top3.map((u, idx)=> (
               <div key={`p${u.id}`} style={{display:'grid', placeItems:'center', gap:6}}>
-                <SmallThumb src="/icon/profile.png" alt="" style={{width:64, height:64, borderRadius:32}} />
+                <SmallThumb src={u.avatarUrl || '/icon/default.png'} alt="" style={{width:64, height:64, borderRadius:32}} />
                 <div style={{fontWeight:800}}>{u.name}</div>
                 <div style={{opacity:.7}}>{u.handle}</div>
               </div>

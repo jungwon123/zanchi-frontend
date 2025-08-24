@@ -41,7 +41,7 @@ export default function TutorialPage(){
 
   const next = () => {
     if (step < total-1) setStep(step+1);
-    else router.push('/');
+    else router.push('/clip');
   };
 
   return (
