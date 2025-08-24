@@ -1,0 +1,9 @@
+{
+  "build": {
+    "env": {
+      "TAILWIND_DISABLE_LIGHTNINGCSS": "1"
+    }
+  }
+}
+
+

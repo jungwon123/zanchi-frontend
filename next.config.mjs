@@ -4,7 +4,7 @@ const nextConfig = {
     styledComponents: true,
   },
   experimental: {
-    optimizeCss: false, // lightningcss 끔 → PostCSS fallback 사용
+    optimizeCss: false,
   },
 };
 
