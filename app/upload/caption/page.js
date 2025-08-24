@@ -1,7 +1,7 @@
 "use client";
 
+import React, { useMemo, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState, useEffect } from "react";
 import { useRecoilState } from "recoil";
 import { useQuery } from "@tanstack/react-query";
 import { updateClipCaption } from "@/app/_api/clips";
@@ -35,6 +35,14 @@ const HashIcon = styled.div`
 `;
 
 export default function CaptionEditPage() {
+  return (
+    <React.Suspense fallback={<div style={{ padding: 16, color: '#999' }}>로딩중…</div>}>
+      <CaptionEditInner />
+    </React.Suspense>
+  );
+}
+
+function CaptionEditInner() {
   const router = useRouter();
   const params = useSearchParams();
   const [caption, setCaption] = useRecoilState(uploadCaptionState);
