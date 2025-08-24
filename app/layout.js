@@ -1,17 +1,6 @@
-import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 import StyledComponentsRegistry from "./_lib/StyledComponentsRegistry";
-
-const geistSans = Inter({
-  variable: "--font-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Roboto_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
-});
 
 export const metadata = {
   title: "Create Next App",
@@ -21,7 +10,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`antialiased`}>
         <StyledComponentsRegistry>
           <Providers>{children}</Providers>
         </StyledComponentsRegistry>
