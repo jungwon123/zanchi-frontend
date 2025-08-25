@@ -83,8 +83,9 @@ export const TabButton = styled.button`
         `}
 `;
 export const IconButton = styled.button`
-  width: 58px;
+  width: 50px;
   height: 75px;
+
   border: 0;
   padding: 0;
   background-color: transparent;

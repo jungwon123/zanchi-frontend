@@ -37,9 +37,9 @@ export const BackBtn = styled.button`
 export const ClipBtn = styled.button`
   position: absolute;
   right: 16px;
-  top: 10px;
-  width: 96px;
-  height: 64px;
+  top: -5px;
+  width: 59px;
+  height: 75px;
   border-radius: 20px;
   border: 0;
   background: transparent;
@@ -53,10 +53,10 @@ export const ClipBtn = styled.button`
 export const ClipImg = styled.button`
   position: absolute;
   right: 0px;
-  top: 6px;
+  top: -6px;
 
-  width: 96px;
-  height: 72px;
+  width: 100%;
+  height: 75px;
   border: 0;
   padding: 0;
   background-color: transparent;
@@ -168,7 +168,7 @@ export const LoaderIcon = styled.div`
   margin-top: 150px;
 `;
 export const LoaderText = styled.div`
-  margin-top: -12px;
+  margin-top: 12px;
   font-size: 18px;
   font-weight: 600;
   text-align: center;
