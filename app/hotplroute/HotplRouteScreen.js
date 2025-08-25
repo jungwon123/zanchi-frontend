@@ -37,7 +37,14 @@ import {
   Star,
   AddrRow,
   MarkerBadge,
+  AddrPin,
+  PlaceCard,
   BottomActionsRow,
+  TimelineCol,
+  TimelineWrap,
+  TimelineLine,
+  TimelineDot,
+  TimelineArrow,
   SavesWrap,
   SavesHeader,
   SaveItem,
@@ -45,6 +52,17 @@ import {
   SaveTitle,
   SaveDesc,
 } from "./_styles";
+import SelectionSlides from "./_components/SelectionSlides";
+import ResultView from "./_components/ResultView";
+import {
+  PRESET_VENUES,
+  RADIUS_BY_MOBILITY,
+  TAG_TO_QUERY,
+  toBase64Id,
+  normalize,
+  parseKakaoMapLinkToCoords,
+  deriveKeywords,
+} from "./utils";
 import PrimaryButton from "../_components/PrimaryButton";
 import {
   kakaoSearch,
@@ -65,7 +83,7 @@ export default function HotplRouteScreen() {
     sub: new Set(),
   });
   const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState(1);
   const [loadingStep, setLoadingStep] = useState(0);
   const [result, setResult] = useState(null);
   const [saves, setSaves] = useState(() => {
@@ -81,6 +99,37 @@ export default function HotplRouteScreen() {
   const EXCLUDE_IDS = useRef([]);
   const LAST_RENDER = useRef(null);
   const [lastContext, setLastContext] = useState(null);
+  const PROGRESS_TARGET = useRef(1);
+  const PROGRESS_TIMER = useRef(null);
+  const PROGRESS_CURRENT = useRef(1);
+
+  // 부드러운 퍼센트 상승 애니메이션 (target까지 1씩 증가)
+  useEffect(() => {
+    if (!loading) return;
+    if (PROGRESS_TIMER.current) return;
+    PROGRESS_TIMER.current = setInterval(() => {
+      setProgress((prev) => {
+        PROGRESS_CURRENT.current = prev;
+        if (prev < PROGRESS_TARGET.current) return Math.min(prev + 1, 100);
+        if (PROGRESS_TARGET.current === 100 && prev < 100)
+          return Math.min(prev + 1, 100);
+        return prev;
+      });
+    }, 60);
+    return () => {
+      if (PROGRESS_TIMER.current) {
+        clearInterval(PROGRESS_TIMER.current);
+        PROGRESS_TIMER.current = null;
+      }
+    };
+  }, [loading]);
+
+  const setProgressTarget = (next) => {
+    PROGRESS_TARGET.current = Math.max(
+      PROGRESS_TARGET.current,
+      Math.min(100, Math.max(1, next))
+    );
+  };
 
   // excludeIds 세션 유지/복구
   useEffect(() => {
@@ -99,41 +148,7 @@ export default function HotplRouteScreen() {
     } catch {}
   };
 
-  // Preset venues (좌표)
-  const PRESET_VENUES = {
-    다락소극장: { name: "떼아뜨르다락소극장", lat: 37.473108, lng: 126.625204 },
-    신포아트홀: { name: "신포 아트홀", lat: 37.47344, lng: 126.62465 },
-  };
-
-  const RADIUS_BY_MOBILITY = {
-    도보: 1200,
-    자전거: 2500,
-    대중교통: 4000,
-    차: 6000,
-  };
-
-  // URL-safe Base64 (백엔드가 Base64.getUrlDecoder() 사용)
-  const toBase64Id = (name, lat, lng) => {
-    try {
-      const raw = `${name}|${(+lat).toFixed(6)}|${(+lng).toFixed(6)}`;
-      const b = btoa(unescape(encodeURIComponent(raw)));
-      return b.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-    } catch {
-      return `${name}|${lat}|${lng}`;
-    }
-  };
-
-  const normalize = (p, role) => ({
-    id: toBase64Id(p.name, p.lat, p.lng),
-    role,
-    name: p.name,
-    address: p.address,
-    lat: p.lat,
-    lng: p.lng,
-    externalUrl: p.externalUrl,
-    rating: p.rating,
-    ratingCount: p.ratingCount,
-  });
+  // 상수/유틸은 utils로 분리됨
 
   const resolveStart = async (venue) => {
     if (!venue) return null;
@@ -146,108 +161,15 @@ export default function HotplRouteScreen() {
     return null;
   };
 
-  // 검색 키워드 매핑(확장)
-  const TAG_TO_QUERY = {
-    지역문화: "문화거리 OR 전통문화 OR 거리공연 OR 역사",
-    전시: "전시 OR 미술관 OR 박물관",
-    시장: "전통시장 OR 재래시장",
-    자연: "자연경관 OR 생태공원",
-    명소: "관광명소 OR 포토스팟 OR 전망대",
-    축제: "축제",
-    산책로: "산책로 OR 공원",
-    점심식사: "맛집 OR 식당",
-    저녁식사: "맛집 OR 식당",
-    브런치: "브런치 카페",
-    커피: "카페",
-    디저트: "디저트 카페 OR 베이커리",
-    술: "와인바 OR 칵테일바 OR 포차",
-    공방: "원데이 클래스 OR 체험 공방",
-    도서관: "도서관 OR 북카페",
-    볼거리: null,
-    놀거리: null,
-    쉼자리: null,
-    먹을거리: null,
-  };
-
-  // 태그 → 키워드/의도
-  const deriveKeywords = (sel) => {
-    const tags = Array.from(sel.sub).map((s) => s.split("|")[1]);
-
-    const midTags = tags.filter((t) =>
-      [
-        "전시",
-        "자연",
-        "시장",
-        "지역문화",
-        "공방",
-        "도서관",
-        "공원",
-        "명소",
-        "축제",
-        "산책로",
-      ].includes(t)
-    );
-    const restTags = tags.filter((t) =>
-      ["점심식사", "저녁식사", "브런치"].includes(t)
-    );
-    const finalTags = tags.filter((t) => ["커피", "디저트", "술"].includes(t));
-
-    const expand = (t) =>
-      Object.prototype.hasOwnProperty.call(TAG_TO_QUERY, t)
-        ? TAG_TO_QUERY[t]
-        : t;
-
-    // 기본 mid 키워드: '쉴거리'나 자연/산책로가 있으면 산책 위주, 아니면 전시
-    const preferWalkBase =
-      sel.categories.has("쉴거리") ||
-      tags.includes("자연") ||
-      tags.includes("산책로");
-    const midDefault = preferWalkBase ? ["산책로", "자연"] : ["전시"];
-    const midKeywords = (midTags.length ? midTags : midDefault)
-      .map(expand)
-      .filter(Boolean);
-
-    const restaurantKeywords = (
-      restTags.length ? restTags.map(expand) : []
-    ).filter(Boolean);
-
-    // 마무리 기본값: 별도 선택(커피/디저트/술)이 없고 쉼자리를 원하면 '산책'
-    let finish = finalTags[0] || (preferWalkBase ? "산책" : "카페");
-    const finalDefault = finish === "산책" ? ["산책로"] : ["카페"];
-    const finalKeywords = (finalTags.length ? finalTags : finalDefault)
-      .map(expand)
-      .filter(Boolean);
-
-    // 먹을거리 안 골랐으면 undefined (백엔드에 cuisine 안 보냄)
-    const cuisine = restTags.length ? "맛집" : undefined;
-
-    const what =
-      sel.categories.size > 0
-        ? Array.from(sel.categories)[0]
-        : preferWalkBase
-        ? "쉴거리"
-        : "볼거리";
-
-    return {
-      tags,
-      midKeywords,
-      restaurantKeywords,
-      finalKeywords,
-      what,
-      finish,
-      cuisine,
-    };
-  };
+  // deriveKeywords 등은 utils로 분리됨
 
   const runPlan = async ({ seed = String(Date.now()) } = {}) => {
     try {
       setLoading(true);
-      setProgress(0);
+      setProgress(1);
+      PROGRESS_TARGET.current = 10;
+      PROGRESS_CURRENT.current = 1;
       setLoadingStep(0);
-      const t0 = setInterval(
-        () => setProgress((p) => Math.min(100, p + 2)),
-        60
-      );
       const t1 = setInterval(
         () => setLoadingStep((i) => Math.min(2, i + 1)),
         1200
@@ -285,6 +207,7 @@ export default function HotplRouteScreen() {
       } catch {}
 
       // 검색: 먹을거리 미선택 시 레스토랑 쿼리는 아예 호출 안 함
+      setProgressTarget(20);
       const [midRaw, restRaw, finalRaw] = await Promise.all([
         kakaoSearchByKeywords({
           keywords: midKeywords,
@@ -310,6 +233,7 @@ export default function HotplRouteScreen() {
           size: 10,
         }),
       ]);
+      setProgressTarget(45);
 
       let mid = (midRaw || []).map((p) => normalize(p, "activity"));
       let restaurants = (restRaw || []).map((p) => normalize(p, "restaurant"));
@@ -339,6 +263,7 @@ export default function HotplRouteScreen() {
           normalize(p, "restaurant")
         );
       }
+      setProgressTarget(55);
 
       // 파이널 폴백: finish에 맞춰 검색
       if (finals.length === 0) {
@@ -370,6 +295,7 @@ export default function HotplRouteScreen() {
           )
         );
       }
+      setProgressTarget(65);
 
       const payload = {
         reqId,
@@ -392,7 +318,9 @@ export default function HotplRouteScreen() {
         console.log("[HotplRoute] reqId", reqId, "plannerPayload:", payload);
       } catch {}
 
+      setProgressTarget(75);
       const data = await aiPlan(payload);
+      setProgressTarget(85);
       const plan = (data && data.plans && data.plans[0]) || null;
       const steps = Array.isArray(plan && plan.steps) ? plan.steps : [];
 
@@ -462,6 +390,7 @@ export default function HotplRouteScreen() {
       const enrichedSingles = Array.isArray(data && data.singles)
         ? data.singles.map(enrichFromCandidates)
         : [];
+      setProgressTarget(92);
 
       // steps가 4 미만이면 singles로 보충 + 정렬
       const roleOrder = {
@@ -492,10 +421,12 @@ export default function HotplRouteScreen() {
         rating: s.rating,
         thumb: "",
         role: s.role,
+        mapLink: s.mapLink,
+        externalUrl: s.externalUrl,
+        link: s.mapLink || s.externalUrl || null,
       }));
 
-      clearInterval(t0);
-      setProgress(100);
+      setProgressTarget(100);
       clearInterval(t1);
       setTimeout(() => {
         setLoading(false);
@@ -597,11 +528,45 @@ export default function HotplRouteScreen() {
   return (
     <Screen>
       <TopBar>
-        {view === "venue" && (
-          <BackBtn aria-label="back" onClick={() => setView("start")}>
-            ‹
-          </BackBtn>
-        )}
+        {!loading &&
+          (view === "venue" ||
+            view === "with" ||
+            view === "mobility" ||
+            view === "category" ||
+            view === "saves" ||
+            Boolean(result)) && (
+            <BackBtn
+              aria-label="back"
+              onClick={() => {
+                if (result) {
+                  setResult(null);
+                  setView("start");
+                  return;
+                }
+                if (view === "with") {
+                  setView("venue");
+                  return;
+                }
+                if (view === "mobility") {
+                  setView("with");
+                  return;
+                }
+                if (view === "category") {
+                  setView("mobility");
+                  return;
+                }
+                if (view === "saves") {
+                  setView("start");
+                  return;
+                }
+                if (view === "venue") {
+                  setView("start");
+                  return;
+                }
+                setView("start");
+              }}
+            />
+          )}
         <TitleCenter>
           <img
             src="/images/hotplroute/hotpltitle.png"
@@ -620,323 +585,86 @@ export default function HotplRouteScreen() {
 
       {/* 본문: 뷰 전환 */}
       {!result && view !== "saves" && (
-        <Slides>
-          <Slide $active={view === "start"} $dir="right">
-            <Main $center>
-              <IntroText>
-                <div>AI가 000님의 취향을 분석해</div>
-                <div>맞춤형 루트를 추천해요</div>
-              </IntroText>
-              <div style={{ marginTop: 28 }}>
-                <Illustration />
-              </div>
-            </Main>
-            <BottomActions>
-              <RoundBtn
-                aria-label="menu"
-                onClick={async () => {
-                  try {
-                    const list = await getRoutes();
-                    setSaves(list);
-                    setView("saves");
-                  } catch (e) {
-                    setSaves([]);
-                    setView("saves");
-                  }
-                }}
-              >
-                <span
-                  style={{
-                    display: "inline-block",
-                    width: 24,
-                    height: 24,
-                    borderTop: "3px solid #fff",
-                    borderBottom: "3px solid #fff",
-                    position: "relative",
-                  }}
-                >
-                  <span
-                    style={{
-                      position: "absolute",
-                      left: 0,
-                      right: 0,
-                      top: 8,
-                      borderTop: "3px solid #fff",
-                    }}
-                  />
-                </span>
-              </RoundBtn>
-              <CtaBtn onClick={() => setView("venue")}>루트 만들기</CtaBtn>
-            </BottomActions>
-          </Slide>
-
-          <Slide $active={view === "venue"} $dir="right">
-            <Main>
-              <SectionTitle>잔치가 어디에서 열리나요?</SectionTitle>
-              <TwoCols>
-                {["다락소극장", "신포아트홀"].map((t) => (
-                  <GhostBtn
-                    key={t}
-                    $active={selected.venue === t}
-                    onClick={() => {
-                      setSelected((s) => ({ ...s, venue: t }));
-                      setView("with");
-                    }}
-                  >
-                    {t}
-                  </GhostBtn>
-                ))}
-              </TwoCols>
-            </Main>
-          </Slide>
-
-          <Slide $active={view === "with"} $dir="right">
-            <Main>
-              <SectionTitle>누구랑 잔치를 보러왔나요?</SectionTitle>
-              <ButtonsRow>
-                {["가족", "친구", "연인", "혼자"].map((t) => (
-                  <GhostBtn
-                    key={t}
-                    $active={selected.with === t}
-                    onClick={() => {
-                      setSelected((s) => ({ ...s, with: t }));
-                      setView("mobility");
-                    }}
-                  >
-                    {t}
-                  </GhostBtn>
-                ))}
-              </ButtonsRow>
-            </Main>
-          </Slide>
-
-          <Slide $active={view === "mobility"} $dir="right">
-            <Main>
-              <SectionTitle>어떻게 이동하나요?</SectionTitle>
-              <ButtonsRow>
-                {["도보", "자전거", "대중교통", "차"].map((m) => (
-                  <GhostBtn
-                    key={m}
-                    $active={selected.mobility === m}
-                    onClick={() => {
-                      setSelected((s) => ({ ...s, mobility: m }));
-                      setView("category");
-                    }}
-                  >
-                    {m}
-                  </GhostBtn>
-                ))}
-              </ButtonsRow>
-              <BottomBar>
-                <PrimaryButton
-                  onClick={() => setView("category")}
-                  disabled={!selected.mobility}
-                >
-                  다음
-                </PrimaryButton>
-              </BottomBar>
-            </Main>
-          </Slide>
-
-          <Slide $active={view === "category"} $dir="right">
-            <Main style={{ paddingTop: 0 }}>
-              <SectionTitle>어디를 가고싶나요?</SectionTitle>
-              <FourGrid>
-                {baseCats.map((t) => (
-                  <GhostBtn
-                    key={t}
-                    $mid={selected.categories.has(t)}
-                    $active={false}
-                    onClick={() => toggleCategory(t)}
-                  >
-                    {t}
-                  </GhostBtn>
-                ))}
-              </FourGrid>
-
-              {baseCats
-                .filter((c) => selected.categories.has(c))
-                .map((c) => (
-                  <div key={c} style={{ marginTop: 16 }}>
-                    <SectionTitle
-                      style={{ fontSize: 18, margin: "24px 0 12px" }}
-                    >
-                      {c}
-                    </SectionTitle>
-                    <ButtonsRow>
-                      {(subMap[c] || []).map((s) => (
-                        <GhostBtn
-                          key={c + ":" + s}
-                          $active={selected.sub.has(`${c}|${s}`)}
-                          onClick={() => toggleSub(c, s)}
-                        >
-                          {s}
-                        </GhostBtn>
-                      ))}
-                    </ButtonsRow>
-                  </div>
-                ))}
-
-              <BottomBar>
-                <PrimaryButton
-                  disabled={selected.sub.size === 0 || selected.sub.size > 4}
-                  onClick={() => {
-                    runPlan({});
-                  }}
-                >
-                  코스 추천받기
-                </PrimaryButton>
-              </BottomBar>
-            </Main>
-          </Slide>
-        </Slides>
+        <SelectionSlides
+          view={view}
+          setView={setView}
+          selected={selected}
+          setSelected={setSelected}
+          baseCats={baseCats}
+          subMap={subMap}
+          runPlan={runPlan}
+          getRoutes={getRoutes}
+          setSaves={setSaves}
+        />
       )}
 
       {result && !loading && (
-        <ResultWrap>
-          <ResultTop>
-            <DateText
-              value={dateText}
-              onChange={(e) => setDateText(e.target.value)}
-            />
-            <EditBtn
-              onClick={() => {
-                const v = prompt("날짜를 입력하세요 (YYYY.MM.DD)", dateText);
-                if (v) setDateText(v);
-              }}
-            />
-          </ResultTop>
-          <Places>
-            {result.items.map((p, i) => (
-              <PlaceItem key={p.id}>
-                <Thumb style={{ backgroundImage: `url(${p.thumb})` }} />
-                <div>
-                  <PlaceTitle>{p.title}</PlaceTitle>
-                  <RatingRow>
-                    <Star>★</Star>
-                    <div>
-                      {p.rating != null ? Number(p.rating).toFixed(2) : ""}
-                    </div>
-                  </RatingRow>
-                  <AddrRow>
-                    <MarkerBadge>{String.fromCharCode(65 + i)}</MarkerBadge>
-                    <div>{p.addr}</div>
-                  </AddrRow>
-                </div>
-              </PlaceItem>
-            ))}
-          </Places>
-          <BottomActionsRow>
-            <RoundBtn
-              aria-label="rerun"
-              onClick={() => {
+        <ResultView
+          result={result}
+          dateText={dateText}
+          setDateText={setDateText}
+          onSave={async () => {
+            try {
+              if (saving) return;
+              setSaving(true);
+              const meta = result && result.meta;
+              if (!meta || !meta.payload || !meta.plan)
+                throw new Error("저장할 코스가 없습니다.");
+              const srcSteps = meta.planEnrichedSteps || meta.plan.steps || [];
+              const steps = srcSteps.map((s, idx) => ({
+                label: String.fromCharCode(65 + idx),
+                id: s.id,
+                role: s.role,
+                name: s.name,
+                address: s.address,
+                lat: s.lat,
+                lng: s.lng,
+                externalUrl: s.externalUrl,
+                mapLink: s.mapLink,
+                rating: s.rating,
+                ratingCount: s.ratingCount,
+              }));
+              const payload = {
+                title: dateText,
+                companion: meta.payload.companion,
+                mobility: meta.payload.mobility,
+                startName: meta.payload.startName,
+                startLat: meta.payload.startLat,
+                startLng: meta.payload.startLng,
+                tags: meta.payload.tags,
+                totalTravelMinutes: meta.plan.totalTravelMinutes,
+                explain: meta.plan.explain,
+                steps,
+              };
+              await saveRoute(payload);
+              const btn = document.activeElement;
+              if (btn) btn.textContent = "저장완료";
+              setTimeout(() => {
                 setResult(null);
-                runPlan({ seed: String(Date.now()) });
-              }}
-            >
-              ↺
-            </RoundBtn>
-            <PrimaryButton
-              onClick={async () => {
-                try {
-                  if (saving) return;
-                  setSaving(true);
-
-                  const meta = result && result.meta;
-                  if (!meta || !meta.payload || !meta.plan)
-                    throw new Error("저장할 코스가 없습니다.");
-
-                  // 보강된 스텝 우선 저장
-                  const srcSteps =
-                    meta.planEnrichedSteps || meta.plan.steps || [];
-                  const steps = srcSteps.map((s, idx) => ({
-                    label: String.fromCharCode(65 + idx),
-                    id: s.id,
-                    role: s.role,
-                    name: s.name,
-                    address: s.address,
-                    lat: s.lat,
-                    lng: s.lng,
-                    externalUrl: s.externalUrl,
-                    mapLink: s.mapLink,
-                    rating: s.rating,
-                    ratingCount: s.ratingCount,
-                  }));
-                  const payload = {
-                    title: dateText,
-                    companion: meta.payload.companion,
-                    mobility: meta.payload.mobility,
-                    startName: meta.payload.startName,
-                    startLat: meta.payload.startLat,
-                    startLng: meta.payload.startLng,
-                    tags: meta.payload.tags,
-                    totalTravelMinutes: meta.plan.totalTravelMinutes,
-                    explain: meta.plan.explain,
-                    steps,
-                  };
-                  await saveRoute(payload);
-
-                  const btn = document.activeElement;
-                  if (btn) btn.textContent = "저장완료";
-                  setTimeout(() => {
-                    setResult(null);
-                    setView("start");
-                    if (btn) btn.textContent = "저장하기";
-                  }, 900);
-                } catch (e) {
-                  console.error(e);
-                  alert("로그인이 필요하거나 저장에 실패했습니다.");
-                } finally {
-                  setSaving(false);
-                }
-              }}
-            >
-              저장하기
-            </PrimaryButton>
-          </BottomActionsRow>
-        </ResultWrap>
+                setView("start");
+                if (btn) btn.textContent = "저장하기";
+              }, 900);
+            } catch (e) {
+              console.error(e);
+              alert("로그인이 필요하거나 저장에 실패했습니다.");
+            } finally {
+              setSaving(false);
+            }
+          }}
+          onRerun={() => {
+            setResult(null);
+            runPlan({ seed: String(Date.now()) });
+          }}
+        />
       )}
 
       {view === "saves" && !loading && (
-        <SavesWrap>
-          <SavesHeader>저장 목록</SavesHeader>
-          {saves.map((s) => (
-            <SaveItem
-              key={s.id}
-              onClick={async () => {
-                try {
-                  const r = await getRoute(s.id);
-                  const items = (r.steps || []).map((st) => ({
-                    id: st.id,
-                    title: st.name,
-                    addr: st.address,
-                    rating: st.rating,
-                    thumb: "",
-                    role: st.role,
-                  }));
-                  setResult({
-                    items,
-                    meta: { fromSaved: true, savedId: r.id },
-                  });
-                  setView("");
-                } catch (e) {
-                  alert("불러오기에 실패했습니다.");
-                }
-              }}
-            >
-              <SaveIcon />
-              <div>
-                <SaveTitle>{s.title || "나의 루트"}</SaveTitle>
-                <SaveDesc>{(s.tags || []).slice(0, 3).join(", ")}</SaveDesc>
-              </div>
-            </SaveItem>
-          ))}
-          {saves.length === 0 && (
-            <div style={{ color: "#888", padding: "16px 0" }}>
-              저장된 항목이 없습니다.
-            </div>
-          )}
-        </SavesWrap>
+        <SavesList
+          saves={saves}
+          getRoute={getRoute}
+          setResult={setResult}
+          setView={setView}
+        />
       )}
 
       {loading && (
@@ -946,11 +674,24 @@ export default function HotplRouteScreen() {
               <img
                 src="/images/hotplroute/hotpltitle.png"
                 alt="핫플루트"
-                style={{ height: 28 }}
+                style={{ height: 36 }}
               />
             </TitleCenter>
           </TopBar>
-          <LoaderIcon />
+          <div style={{ display: "grid", placeItems: "center", gap: 12 }}>
+            <div
+              aria-label="percent"
+              style={{
+                fontSize: 18,
+                fontWeight: 600,
+                color: "#040404",
+                marginTop: 4,
+              }}
+            >
+              {progress}%
+            </div>
+            <LoaderIcon style={{ transform: "scale(1.25)" }} />
+          </div>
           <LoaderText>
             {
               [

@@ -37,9 +37,7 @@ const Title = styled.div`
 `;
 
 const Banner = styled.div`
-  position: sticky;
   top: 56px;
-  z-index: 1;
   padding: 12px 16px;
   background: #ff7d0a;
   color: #fff;
@@ -57,10 +55,9 @@ const Sub = styled.span`
 const Podium = styled.div`
   background: #ff7d0a;
   color: #fff;
-  padding: 0px 0px 16px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  height: 50vh;
+  height: 45vh;
   align-items: center;
 `;
 const PCard = styled.button`
