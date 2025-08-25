@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 
 export default function SplashPage() {
   const router = useRouter();
@@ -50,19 +50,24 @@ const Tagline = styled.div`
 `;
 
 const Logo = styled.div`
-  width: 220px;
-  height: 56px;
+  width: min(395px, 86vw);
+  height: 85px;
   background-image: url(${(p) => p.$src});
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
 `;
 
+const rise = keyframes`
+  from { transform: translate(-50%, 40%); opacity: 0; }
+  to { transform: translate(-50%, 0%); opacity: 1; }
+`;
+
 const Tiger = styled.div`
   position: absolute;
   left: 50%;
   bottom: -8px;
-  transform: translateX(-50%);
+  transform: translate(-50%, 0%);
   width: min(760px, 120%);
   height: 300px;
   background-image: url(${(p) => p.$src});
@@ -71,4 +76,5 @@ const Tiger = styled.div`
   background-repeat: no-repeat;
   pointer-events: none;
   user-select: none;
+  animation: ${rise} 900ms ease-out 150ms both;
 `;
