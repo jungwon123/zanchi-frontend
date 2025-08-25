@@ -21,33 +21,10 @@ export async function uploadClip({ file, caption }) {
   return data;
 }
 
-// 공통: 클립 피드 조회
-export async function getClipsFeed({ page = 0, size = 10 } = {}) {
-  const { data } = await api.get(`/api/clips/feed`, { params: { page, size } });
-  const items = (data?.content || []).map((c) => ({
-    id: c.clipId,
-    src: toAbsoluteUrl(c.videoUrl),
-    caption: c.caption ?? "",
-    authorName: c.authorName ?? c.uploader?.nickname ?? "",
-    uploaderId: c.uploaderId ?? c.uploader?.id ?? null,
-    uploaderAvatarUrl: c.uploaderAvatarUrl ?? c.uploader?.avatarUrl ?? null,
-    saved: Boolean(c.savedByMe ?? c.saved),
-    liked: Boolean(c.likedByMe ?? c.liked),
-    likeCount: c.likeCount,
-    commentCount: c.commentCount,
-    createdAt: c.createdAt,
-    uploader: c.uploader,
-  }));
-  return {
-    items,
-    pageable: data?.pageable,
-    totalElements: data?.totalElements,
-    last: data?.last,
-  };
-}
+
 
 // 클립 전체 조회(피드가 아닌 모든 클립 리스트; 엔드포인트는 /api/clips 로 가정)
-export async function getClips({ page = 0, size = 10 } = {}) {
+export async function getClips({ page = 0, size = 20 } = {}) {
   const { data } = await api.get(`/api/clips/feed`, { params: { page, size } });
   const items = (data?.content || data || []).map((c) => ({
     id: c.clipId ?? c.id,

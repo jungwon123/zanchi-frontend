@@ -72,7 +72,6 @@ export default function RightActions({ likes = 0, comments = 0, savesInitial = f
       </ActionItem>
       <ActionItem>
         <ActionButton aria-label="share" $src="/icon/share.png" onClick={() => openShare(true)}></ActionButton>
-        <ActionCount>{shares}</ActionCount>
       </ActionItem>
 
     </ActionsWrap>

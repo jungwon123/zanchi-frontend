@@ -20,7 +20,7 @@ export async function getRankingClips({ page = 0, size = 30 } = {}) {
     clipId: c.clipId,
     uploaderId: c.uploaderId,
     name: c.uploaderName ?? "",
-    description: c.description ?? "",
+    caption: c.caption ?? c.description ?? "",
     handle: `@${c.uploaderName ?? ''}`,
     avatarUrl: toAbsoluteUrl(c.uploaderAvatarUrl),
     src: toAbsoluteUrl(c.videoUrl),

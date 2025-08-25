@@ -7,6 +7,9 @@ import HlsPlayer from "@/app/clip/_components/HlsPlayer";
 import BottomNav from "@/app/_components/BottomNav";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMySummary, getFollowCounts, getMyClips, getSavedClips, getPickedClips, uploadAvatar } from "@/app/_api/profile";
+import { useSetRecoilState } from "recoil";
+import { shareOpenState } from "@/app/_state/atoms";
+import ShareSheet from "@/app/clip/_components/ShareSheet";
 
 export default function MyProfilePage() {
   const router = useRouter();
@@ -14,6 +17,7 @@ export default function MyProfilePage() {
   const fileInputRef = React.useRef(null);
   const queryClient = useQueryClient();
   const { data: me } = useQuery({ queryKey: ['me-summary'], queryFn: getMySummary });
+  const openShare = useSetRecoilState(shareOpenState);
   const { data: counts } = useQuery({ queryKey: ['me-counts', me?.id], queryFn: () => getFollowCounts(me.id), enabled: !!me?.id });
   const { data: myClips } = useQuery({ queryKey: ['me-clips', 0], queryFn: () => getMyClips({ page: 0, size: 50 }) });
   const { data: savedClips } = useQuery({ queryKey: ['me-saved', 0], queryFn: () => getSavedClips({ page: 0, size: 50 }) });
@@ -67,7 +71,7 @@ export default function MyProfilePage() {
 
       <ActionsRow>
         <ActionBtn $primary onClick={()=> router.push('/profile/edit')}>프로필 편집</ActionBtn>
-        <ActionBtn onClick={()=> router.push('/profile/share')}>프로필 공유</ActionBtn>
+        <ActionBtn onClick={()=> openShare(true)}>프로필 공유</ActionBtn>
       </ActionsRow>
 
       <Tabs>
@@ -84,6 +88,9 @@ export default function MyProfilePage() {
           </Card>
         ))}
       </Grid>
+
+      {/* 공유 시트 재사용 */}
+      <ShareSheet />
 
       <BottomNav current="me" />
     </Container>

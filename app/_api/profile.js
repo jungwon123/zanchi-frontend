@@ -79,8 +79,14 @@ export async function getFollowing(userId, { page = 0, size = 20, q = '' } = {})
 
 // 표시명 수정
 export async function updateName(name) {
-  const { data } = await api.put('/api/name', { name });
-  return data; // { id, name }
+  try {
+    const { data } = await api.patch('/api/name', { name });
+    return data; // { id, name }
+  } catch (e) {
+    // Fallback to PUT for servers that expect PUT
+    const { data } = await api.put('/api/name', { name });
+    return data;
+  }
 }
 
 // 저장한 클립
@@ -108,6 +114,7 @@ export async function getMemberClipsList(userId, { page = 0, size = 50 } = {}) {
     viewCount: c.viewCount ?? 0,
     authorName: c.authorName ?? "",
     uploaderId: c.uploaderId ?? null,
+    uploaderAvatarUrl: c.uploaderAvatarUrl ?? null,
     createdAt: c.createdAt,
     liked: Boolean(c.likedByMe ?? c.liked),
     saved: Boolean(c.savedByMe ?? c.saved),

@@ -68,6 +68,7 @@ function ClipViewerInner() {
         authorName={current.authorName}
         caption={current.caption}
         uploaderId={current.uploaderId}
+        uploaderAvatarUrl={current.uploaderAvatarUrl}
         likes={current.likeCount}
         comments={current.commentCount}
         liked={current.liked}

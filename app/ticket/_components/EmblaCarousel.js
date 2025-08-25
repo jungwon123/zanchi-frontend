@@ -93,8 +93,8 @@ export default function EmblaCarousel({ items }) {
       uploaderName: r.name,
       clipId: r.clipId,
       uploaderId: r.uploaderId,
-      description: r.description,
-      title: r.name, // 제목 정보가 별도로 없으므로 닉네임을 제목으로 노출
+      caption: r.caption, // 제목으로 사용할 캡션
+      title: r.name,
       thumb: '/images/ticket/question.png',
     }));
   }, [rankingData?.items]);
@@ -166,8 +166,8 @@ export default function EmblaCarousel({ items }) {
               <SlideVideo src={it.videoUrl || ""} poster={it.thumb} muted playsInline autoPlay />
             </SlideInner>
             <CaptionBox data-caption="1">
-              <CaptionTitle>{it.description || `제목${it.id}`}</CaptionTitle>
-              <CaptionDesc>@{it.uploaderName || ''}</CaptionDesc>
+              <CaptionTitle>@{it.uploaderName || ''}</CaptionTitle>
+              <CaptionDesc>{it.caption || `무제`}</CaptionDesc>
             </CaptionBox>
           </Slide>
         ))}

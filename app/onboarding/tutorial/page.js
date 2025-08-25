@@ -29,11 +29,12 @@ const BottomBar = styled.div`
 
 export default function TutorialPage(){
   const router = useRouter();
-  const slides = [{}, {}, {}];
+  const slides = [{}, {}, {}, {}];
   const imgs = [
     '/images/tutorial/tutorial1.svg',
     '/images/tutorial/tutorial2.svg',
     '/images/tutorial/tutorial3.svg',
+    '/images/tutorial/tutorial4.svg',
   ];
   const [step, setStep] = React.useState(0);
   const total = slides.length;
