@@ -53,18 +53,19 @@ export const ClipBtn = styled.button`
 export const ClipImg = styled.button`
   position: absolute;
   right: 0px;
-  top: 10px;
+  top: 6px;
 
-  width: 42px;
-  height: 58px;
+  width: 96px;
+  height: 72px;
   border: 0;
   padding: 0;
   background-color: transparent;
   background-image: url(${(p) => p.$src || "none"});
   background-repeat: no-repeat;
-  background-position: center;
+  background-position: right center;
   background-size: contain;
   cursor: pointer;
+  z-index: 5;
 `;
 
 export const ClipIcon = styled.span`

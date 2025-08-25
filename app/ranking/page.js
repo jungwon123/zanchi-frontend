@@ -310,7 +310,7 @@ export default function RankingPage() {
               <div style={{ fontWeight: 800, color: "#040404" }}>{u.name}</div>
               <div style={{ opacity: 0.7, color: "#040404" }}>{u.handle}</div>
             </Col>
-            <Like>{(u.score / 1000).toFixed(1)}k ❤</Like>
+            <Like>{u.score != null ? u.score.toLocaleString() : 0} ❤</Like>
           </Row>
         ))}
       </List>
