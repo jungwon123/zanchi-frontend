@@ -495,37 +495,6 @@ export default function HotplRouteScreen() {
     });
   };
 
-  const mockPlaces = [
-    {
-      id: "p1",
-      title: "신포국제시장",
-      thumb: "https://picsum.photos/seed/101/240/240",
-      rating: 4.43,
-      addr: "인천 중구 신포동 6-6",
-    },
-    {
-      id: "p2",
-      title: "신포공갈빵",
-      thumb: "https://picsum.photos/seed/102/240/240",
-      rating: 4.36,
-      addr: "인천 중구 우현로49번길 14",
-    },
-    {
-      id: "p3",
-      title: "카페맑음",
-      thumb: "https://picsum.photos/seed/103/240/240",
-      rating: 4.68,
-      addr: "인천 중구 신포로 32-21",
-    },
-    {
-      id: "p4",
-      title: "뜬돌집",
-      thumb: "https://picsum.photos/seed/104/240/240",
-      rating: 4.89,
-      addr: "인천 중구 우현로45번길 30-11층",
-    },
-  ];
-
   return (
     <Screen>
       <TopBar>
@@ -702,7 +671,7 @@ export default function HotplRouteScreen() {
                 fontSize: 18,
                 fontWeight: 600,
                 color: "#040404",
-                marginTop: 4,
+                marginTop: 80,
               }}
             >
               {progress}%

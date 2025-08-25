@@ -120,7 +120,7 @@ export const RoundBtn = styled.button`
   height: 64px;
   border-radius: 32px;
   border: 0;
-  background: #ff8a00;
+  background: #ff7d0a;
   color: #fff;
 `;
 
@@ -129,7 +129,7 @@ export const CtaBtn = styled.button`
   height: 64px;
   border-radius: 32px;
   border: 0;
-  background: #ff8a00;
+  background: #ff7d0a;
   color: #fff;
   font-weight: 700;
 `;
@@ -168,7 +168,7 @@ export const LoaderIcon = styled.div`
   margin-top: 150px;
 `;
 export const LoaderText = styled.div`
-  margin-top: 12px;
+  margin-top: -12px;
   font-size: 18px;
   font-weight: 600;
   text-align: center;
@@ -229,7 +229,7 @@ export const Thumb = styled.div`
   background-position: center;
 `;
 export const PlaceTitle = styled.div`
-  font-size: 22px;
+  font-size: 16px;
   font-weight: 800;
   margin-bottom: 8px;
 `;
@@ -278,9 +278,8 @@ export const PlaceCard = styled.div`
   border: 0.5px solid var(--sub, #ffdab8);
   background: var(--W, #fbfbfb);
   display: flex;
-  height: 100%;
-  min-height: 113px;
-  padding: 0 16px;
+
+  padding: 12px 16px;
   align-items: center;
   gap: 11px;
   flex: 1 0 0;
@@ -314,8 +313,8 @@ export const TimelineLine = styled.div`
 `;
 
 export const TimelineDot = styled.div`
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   border-radius: 24px;
   background: #ff7d0a;
   color: #fff;
