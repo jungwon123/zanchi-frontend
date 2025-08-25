@@ -4,8 +4,29 @@ import { useEffect, useMemo, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { commentsOpenState, myIdState } from "../../_state/atoms";
 import { useRouter } from "next/navigation";
-import { SheetBackdrop, SheetWrap, SheetHeader, SheetHandle, SheetTitle, SheetBody, CommentItem, CommentMeta, ReplyLink, MoreRepliesLink, RepliesBlock, SheetInputBar, InputWrapper, InputField, SendButton } from "./style";
-import { getComments, addComment, getReplies, addReply } from "@/app/_api/comments";
+import {
+  SheetBackdrop,
+  SheetWrap,
+  SheetHeader,
+  SheetHandle,
+  SheetTitle,
+  SheetBody,
+  CommentItem,
+  CommentMeta,
+  ReplyLink,
+  MoreRepliesLink,
+  RepliesBlock,
+  SheetInputBar,
+  InputWrapper,
+  InputField,
+  SendButton,
+} from "./style";
+import {
+  getComments,
+  addComment,
+  getReplies,
+  addReply,
+} from "@/app/_api/comments";
 import { toAbsoluteUrl } from "@/app/_lib/url";
 
 function timeAgo(ts) {
@@ -18,12 +39,14 @@ function timeAgo(ts) {
     [4, "주"],
     [12, "달"],
   ];
-  let v = diff; let i = 0; let label = "초";
+  let v = diff;
+  let i = 0;
+  let label = "초";
   for (; i < units.length && v >= units[i][0]; i++) {
     v = Math.floor(v / units[i][0]);
     label = units[i][1];
   }
-  if (label === "달" && v >= 12) return `${Math.floor(v/12)}년`;
+  if (label === "달" && v >= 12) return `${Math.floor(v / 12)}년`;
   return `${v}${label}`;
 }
 
@@ -37,21 +60,29 @@ export default function CommentsSheet({ clipAuthor = "사용자", clipId = 10 })
   const myId = useRecoilValue(myIdState);
   const router = useRouter();
 
-  
-
   const nameOf = (authorObj, fallbackName) => {
     // 우선 author 객체의 대표 문자열 필드 사용
-    if (authorObj && typeof authorObj === 'object') {
-      const s = authorObj.nickname ?? authorObj.name ?? authorObj.authorName ?? authorObj.loginId ?? authorObj.handle;
-      if (typeof s === 'string' && s.length > 0) return s;
+    if (authorObj && typeof authorObj === "object") {
+      const s =
+        authorObj.nickname ??
+        authorObj.name ??
+        authorObj.authorName ??
+        authorObj.loginId ??
+        authorObj.handle;
+      if (typeof s === "string" && s.length > 0) return s;
     }
     // fallback이 문자열이면 그대로, 객체면 안전한 필드만 추출
-    if (typeof fallbackName === 'string') return fallbackName;
-    if (fallbackName && typeof fallbackName === 'object') {
-      const s2 = fallbackName.nickname ?? fallbackName.name ?? fallbackName.authorName ?? fallbackName.loginId ?? '';
-      return typeof s2 === 'string' ? s2 : '';
+    if (typeof fallbackName === "string") return fallbackName;
+    if (fallbackName && typeof fallbackName === "object") {
+      const s2 =
+        fallbackName.nickname ??
+        fallbackName.name ??
+        fallbackName.authorName ??
+        fallbackName.loginId ??
+        "";
+      return typeof s2 === "string" ? s2 : "";
     }
-    return String(fallbackName ?? '');
+    return String(fallbackName ?? "");
   };
 
   // 최초 열릴 때 댓글 로드
@@ -71,21 +102,33 @@ export default function CommentsSheet({ clipAuthor = "사용자", clipId = 10 })
   }, [clipId]);
 
   const placeholder = input.length === 0 ? `${clipAuthor}에게 댓글 추가` : "";
+  const inputRef = useMemo(() => ({ current: null }), []);
   const sendEnabled = input.trim().length > 0;
 
   // 동적으로 시트 높이를 CSS 변수로 노출하여 비디오가 동일한 윗선까지 줄어들게 함
-  const sheetStyle = open ? { ['--sheet-h']: '70vh', minHeight: '500px' } : {};
+  const sheetStyle = open ? { ["--sheet-h"]: "70vh", minHeight: "480px" } : {};
+
+  // 라우트 재진입 시 자동 닫힘
+  useEffect(() => {
+    setOpen(false);
+  }, [setOpen]);
 
   const goProfile = (userId) => {
     if (!userId) return;
-    if (myId != null && String(myId) === String(userId)) router.push('/profile/me');
+    if (myId != null && String(myId) === String(userId))
+      router.push("/profile/me");
     else router.push(`/profile?userId=${userId}`);
   };
 
   return (
     <>
       <SheetBackdrop $open={open} onClick={() => setOpen(false)} />
-      <SheetWrap $open={open} role="dialog" aria-label="댓글" style={sheetStyle}>
+      <SheetWrap
+        $open={open}
+        role="dialog"
+        aria-label="댓글"
+        style={sheetStyle}
+      >
         <SheetHeader>
           <SheetHandle />
           <SheetTitle>댓글</SheetTitle>
@@ -93,53 +136,117 @@ export default function CommentsSheet({ clipAuthor = "사용자", clipId = 10 })
         <SheetBody>
           {list.map((c) => (
             <div key={c.id}>
-              <CommentItem $highlight={replyTo?.name === nameOf(c.author, c.authorName ?? c.author)}>
-                <div onClick={() => goProfile(c?.author?.id ?? c.authorId)} style={{ width: 36, height: 36, borderRadius: 18, background: "#eee", backgroundImage: `url(${c?.author?.avatarUrl ? toAbsoluteUrl(c.author.avatarUrl) : '/icon/default.png'})`, backgroundSize: 'cover', backgroundPosition: 'center', cursor: (c?.author?.id ?? c.authorId) ? 'pointer' : 'default' }} />
+              <CommentItem
+                $highlight={
+                  replyTo?.name === nameOf(c.author, c.authorName ?? c.author)
+                }
+              >
+                <div
+                  onClick={() => goProfile(c?.author?.id ?? c.authorId)}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    background: "#eee",
+                    backgroundImage: `url(${
+                      c?.author?.avatarUrl
+                        ? toAbsoluteUrl(c.author.avatarUrl)
+                        : "/icon/default.png"
+                    })`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    cursor: c?.author?.id ?? c.authorId ? "pointer" : "default",
+                  }}
+                />
                 <div>
                   <CommentMeta>
-                    <strong onClick={() => goProfile(c?.author?.id ?? c.authorId)} style={{ cursor: (c?.author?.id ?? c.authorId) ? 'pointer' : 'default' }}>{nameOf(c.author, c.authorName ?? c.author)}</strong> · {timeAgo(new Date(c.createdAt).getTime())}
+                    <strong
+                      onClick={() => goProfile(c?.author?.id ?? c.authorId)}
+                      style={{
+                        cursor:
+                          c?.author?.id ?? c.authorId ? "pointer" : "default",
+                      }}
+                    >
+                      {nameOf(c.author, c.authorName ?? c.author)}
+                    </strong>{" "}
+                    · {timeAgo(new Date(c.createdAt).getTime())}
                   </CommentMeta>
                   <div>{c.content}</div>
-                  <ReplyLink onClick={async () => { 
-                    const name = nameOf(c.author, c.authorName ?? c.author);
-                    setReplyTo({ parentId: c.id, name });
-                    setInput(`@${name} `);
-                    // 대댓글 영역 자동 펼치고 필요 시 로드
-                    setShowPrevReplies((s) => ({ ...s, [c.id]: true }));
-                    if (!Array.isArray(c._replies) || c._replies.length === 0) {
-                      const parentId0 = c.id ?? c.commentId;
-                      if (parentId0 == null) return;
-                      const r = await getReplies(clipId, parentId0, { page: 0, size: 20 });
-                      setList((prev) => {
-                        const idx = prev.findIndex((x) => x.id === c.id);
-                        if (idx < 0) return prev;
-                        const copy = [...prev];
-                        copy[idx] = { ...copy[idx], _replies: r.items, replyCount: r.items?.length ?? copy[idx].replyCount };
-                        return copy;
-                      });
-                    }
-                  }}>
+                  <ReplyLink
+                    onClick={async () => {
+                      const name = nameOf(c.author, c.authorName ?? c.author);
+                      setReplyTo({ parentId: c.id, name });
+                      setInput(`@${name} `);
+                      // 대댓글 영역 자동 펼치고 필요 시 로드
+                      setShowPrevReplies((s) => ({ ...s, [c.id]: true }));
+                      // 키보드 포커스
+                      setTimeout(() => {
+                        try {
+                          inputRef.current?.focus();
+                        } catch {}
+                      }, 0);
+                      if (
+                        !Array.isArray(c._replies) ||
+                        c._replies.length === 0
+                      ) {
+                        const parentId0 = c.id ?? c.commentId;
+                        if (parentId0 == null) return;
+                        const r = await getReplies(clipId, parentId0, {
+                          page: 0,
+                          size: 20,
+                        });
+                        setList((prev) => {
+                          const idx = prev.findIndex((x) => x.id === c.id);
+                          if (idx < 0) return prev;
+                          const copy = [...prev];
+                          copy[idx] = {
+                            ...copy[idx],
+                            _replies: r.items,
+                            replyCount: r.items?.length ?? copy[idx].replyCount,
+                          };
+                          return copy;
+                        });
+                      }
+                    }}
+                  >
                     답글달기
                   </ReplyLink>
-                  {(Number(c.replyCount) > 0) && (
+                  {Number(c.replyCount) > 0 && (
                     <div style={{ marginLeft: 20 }}>
-                      <MoreRepliesLink onClick={async () => {
-                        const wasOpen = !!showPrevReplies[c.id];
-                        const nextOpen = !wasOpen;
-                        setShowPrevReplies((s) => ({ ...s, [c.id]: nextOpen }));
-                        if (nextOpen && (!Array.isArray(c._replies) || c._replies.length === 0)) {
-                          const parentId1 = c.id ?? c.commentId;
-                          if (parentId1 == null) return;
-                          const r = await getReplies(clipId, parentId1, { page: 0, size: 20 });
-                          setList((prev) => {
-                            const idx = prev.findIndex((x) => x.id === c.id);
-                            if (idx < 0) return prev;
-                            const copy = [...prev];
-                            copy[idx] = { ...copy[idx], _replies: r.items, replyCount: r.items?.length ?? copy[idx].replyCount };
-                            return copy;
-                          });
-                        }
-                      }}>
+                      <MoreRepliesLink
+                        onClick={async () => {
+                          const wasOpen = !!showPrevReplies[c.id];
+                          const nextOpen = !wasOpen;
+                          setShowPrevReplies((s) => ({
+                            ...s,
+                            [c.id]: nextOpen,
+                          }));
+                          if (
+                            nextOpen &&
+                            (!Array.isArray(c._replies) ||
+                              c._replies.length === 0)
+                          ) {
+                            const parentId1 = c.id ?? c.commentId;
+                            if (parentId1 == null) return;
+                            const r = await getReplies(clipId, parentId1, {
+                              page: 0,
+                              size: 20,
+                            });
+                            setList((prev) => {
+                              const idx = prev.findIndex((x) => x.id === c.id);
+                              if (idx < 0) return prev;
+                              const copy = [...prev];
+                              copy[idx] = {
+                                ...copy[idx],
+                                _replies: r.items,
+                                replyCount:
+                                  r.items?.length ?? copy[idx].replyCount,
+                              };
+                              return copy;
+                            });
+                          }
+                        }}
+                      >
                         {`이전 답글 ${c.replyCount}개 더보기`}
                       </MoreRepliesLink>
                     </div>
@@ -147,31 +254,100 @@ export default function CommentsSheet({ clipAuthor = "사용자", clipId = 10 })
                   {showPrevReplies[c.id] && (
                     <RepliesBlock>
                       {(c._replies || []).map((r) => (
-                        <CommentItem key={r.id} $highlight={replyTo?.name === nameOf(r.author, r.authorName ?? r.author)} style={{ paddingLeft: 0 }}>
-                          <div onClick={() => goProfile(r?.author?.id ?? r.authorId)} style={{ width: 32, height: 32, borderRadius: 16, background: "#eee", backgroundImage: `url(${r?.author?.avatarUrl ? toAbsoluteUrl(r.author.avatarUrl) : '/icon/default.png'})`, backgroundSize: 'cover', backgroundPosition: 'center', cursor: (r?.author?.id ?? r.authorId) ? 'pointer' : 'default' }} />
+                        <CommentItem
+                          key={r.id}
+                          $highlight={
+                            replyTo?.name ===
+                            nameOf(r.author, r.authorName ?? r.author)
+                          }
+                          style={{ paddingLeft: 0 }}
+                        >
+                          <div
+                            onClick={() =>
+                              goProfile(r?.author?.id ?? r.authorId)
+                            }
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 16,
+                              background: "#eee",
+                              backgroundImage: `url(${
+                                r?.author?.avatarUrl
+                                  ? toAbsoluteUrl(r.author.avatarUrl)
+                                  : "/icon/default.png"
+                              })`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                              cursor:
+                                r?.author?.id ?? r.authorId
+                                  ? "pointer"
+                                  : "default",
+                            }}
+                          />
                           <div>
                             <CommentMeta>
-                              <strong onClick={() => goProfile(r?.author?.id ?? r.authorId)} style={{ cursor: (r?.author?.id ?? r.authorId) ? 'pointer' : 'default' }}>{nameOf(r.author, r.authorName ?? r.author)}</strong> · {timeAgo(new Date(r.createdAt).getTime())}
+                              <strong
+                                onClick={() =>
+                                  goProfile(r?.author?.id ?? r.authorId)
+                                }
+                                style={{
+                                  cursor:
+                                    r?.author?.id ?? r.authorId
+                                      ? "pointer"
+                                      : "default",
+                                }}
+                              >
+                                {nameOf(r.author, r.authorName ?? r.author)}
+                              </strong>{" "}
+                              · {timeAgo(new Date(r.createdAt).getTime())}
                             </CommentMeta>
                             <div>{r.content}</div>
-                            <ReplyLink onClick={async () => { 
-                              const name = nameOf(r.author, r.authorName ?? r.author);
-                              setReplyTo({ parentId: c.id, name });
-                              setInput(`@${name} `);
-                              setShowPrevReplies((s) => ({ ...s, [c.id]: true }));
-                              if (!Array.isArray(c._replies) || c._replies.length === 0) {
-                                const parentId2 = c.id ?? c.commentId;
-                                if (parentId2 == null) return;
-                                const r2 = await getReplies(clipId, parentId2, { page: 0, size: 20 });
-                                setList((prev) => {
-                                  const idx = prev.findIndex((x) => x.id === c.id);
-                                  if (idx < 0) return prev;
-                                  const copy = [...prev];
-                                  copy[idx] = { ...copy[idx], _replies: r2.items, replyCount: r2.items?.length ?? copy[idx].replyCount };
-                                  return copy;
-                                });
-                              }
-                            }}>
+                            <ReplyLink
+                              onClick={async () => {
+                                const name = nameOf(
+                                  r.author,
+                                  r.authorName ?? r.author
+                                );
+                                setReplyTo({ parentId: c.id, name });
+                                setInput(`@${name} `);
+                                setShowPrevReplies((s) => ({
+                                  ...s,
+                                  [c.id]: true,
+                                }));
+                                setTimeout(() => {
+                                  try {
+                                    inputRef.current?.focus();
+                                  } catch {}
+                                }, 0);
+                                if (
+                                  !Array.isArray(c._replies) ||
+                                  c._replies.length === 0
+                                ) {
+                                  const parentId2 = c.id ?? c.commentId;
+                                  if (parentId2 == null) return;
+                                  const r2 = await getReplies(
+                                    clipId,
+                                    parentId2,
+                                    { page: 0, size: 20 }
+                                  );
+                                  setList((prev) => {
+                                    const idx = prev.findIndex(
+                                      (x) => x.id === c.id
+                                    );
+                                    if (idx < 0) return prev;
+                                    const copy = [...prev];
+                                    copy[idx] = {
+                                      ...copy[idx],
+                                      _replies: r2.items,
+                                      replyCount:
+                                        r2.items?.length ??
+                                        copy[idx].replyCount,
+                                    };
+                                    return copy;
+                                  });
+                                }
+                              }}
+                            >
                               답글달기
                             </ReplyLink>
                           </div>
@@ -186,7 +362,14 @@ export default function CommentsSheet({ clipAuthor = "사용자", clipId = 10 })
         </SheetBody>
         <SheetInputBar>
           {/* 프로필 사진 */}
-          <div style={{ width: 36, height: 36, borderRadius: 18, background: "#eee" }} />
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              background: "#eee",
+            }}
+          />
           <InputWrapper>
             <InputField
               placeholder={placeholder}
@@ -194,6 +377,7 @@ export default function CommentsSheet({ clipAuthor = "사용자", clipId = 10 })
               onChange={(e) => {
                 setInput(e.target.value);
               }}
+              ref={(el) => (inputRef.current = el)}
             />
             <SendButton
               $enabled={sendEnabled}
@@ -202,18 +386,27 @@ export default function CommentsSheet({ clipAuthor = "사용자", clipId = 10 })
               onClick={async () => {
                 if (!sendEnabled) return;
                 const parentId = replyTo?.parentId;
-                const validParent = parentId != null && list.some((c) => c.id === parentId);
+                const validParent =
+                  parentId != null && list.some((c) => c.id === parentId);
                 if (validParent) {
                   await addReply(clipId, parentId, { content: input.trim() });
                   // 답글 섹션 자동 열기 및 최신화
                   setShowPrevReplies((s) => ({ ...s, [parentId]: true }));
-                  const r = await getReplies(clipId, parentId, { page: 0, size: 20 });
+                  const r = await getReplies(clipId, parentId, {
+                    page: 0,
+                    size: 20,
+                  });
                   const parentIdx = list.findIndex((c) => c.id === parentId);
                   if (parentIdx >= 0) {
                     const nextList = [...list];
                     const parent = nextList[parentIdx] || {};
-                    const prevReplies = Array.isArray(parent._replies) ? parent._replies : [];
-                    nextList[parentIdx] = { ...parent, _replies: r.items.length ? r.items : prevReplies };
+                    const prevReplies = Array.isArray(parent._replies)
+                      ? parent._replies
+                      : [];
+                    nextList[parentIdx] = {
+                      ...parent,
+                      _replies: r.items.length ? r.items : prevReplies,
+                    };
                     setList(nextList);
                   }
                 } else {
@@ -232,5 +425,3 @@ export default function CommentsSheet({ clipAuthor = "사용자", clipId = 10 })
     </>
   );
 }
-
-

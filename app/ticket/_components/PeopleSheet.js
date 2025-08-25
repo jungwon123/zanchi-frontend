@@ -20,20 +20,37 @@ const Counter = styled.div`
   justify-items: center;
   border: 1px solid #ddd;
   border-radius: 16px;
-  height: 72px;
+  height: 48px;
 `;
 
 const Btn = styled.button`
-  width: 48px; height: 48px; display: grid; place-items: center; font-size: 28px; border: 0; background: transparent;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  border: 0;
+  background: transparent;
+  color: #040404;
 `;
 
 const PayWrap = styled.div`
-  padding: 16px; position: sticky; bottom: 0; background: #fff;
+  padding: 16px;
+  position: sticky;
+  bottom: 0;
+  background: #fff;
 `;
 
-export default function PeopleSheet({ open, onClose, price = 20000, max = 4, onConfirm }) {
+export default function PeopleSheet({
+  open,
+  onClose,
+  price = 20000,
+  max = 4,
+  onConfirm,
+}) {
   const [count, setCount] = React.useState(1);
-  const total = count * price;
+  const unitPrice = Number(price) || 0;
+  const total = React.useMemo(() => count * unitPrice, [count, unitPrice]);
   const dec = () => setCount((n) => Math.max(1, n - 1));
   const inc = () => setCount((n) => Math.min(max, n + 1));
 
@@ -45,10 +62,14 @@ export default function PeopleSheet({ open, onClose, price = 20000, max = 4, onC
   return (
     <BottomSheet open={open} onClose={onClose} title="인원 선택">
       <Row>
-        <div style={{fontWeight: 500}}>인원</div>
+        <div style={{ fontWeight: 400, fontSize: 16, color: "#040404" }}>
+          인원
+        </div>
         <Counter>
           <Btn onClick={dec}>−</Btn>
-          <div style={{fontWeight: 700, fontSize: 24}}>{count}명</div>
+          <div style={{ fontWeight: 700, fontSize: 18, color: "#040404" }}>
+            {count}명
+          </div>
           <Btn onClick={inc}>＋</Btn>
         </Counter>
       </Row>
@@ -60,5 +81,3 @@ export default function PeopleSheet({ open, onClose, price = 20000, max = 4, onC
     </BottomSheet>
   );
 }
-
-

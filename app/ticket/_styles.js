@@ -3,25 +3,30 @@
 import styled from "styled-components";
 
 export const Container = styled.div`
-  background: #FBFBFB;
+  background: #fbfbfb;
   color: #111;
   min-height: 100svh;
   padding-top: 96px;
-  padding-bottom: calc(16px + var(--safe-bottom));
+  padding-bottom: calc(72px + var(--safe-bottom));
 `;
 
 export const HeroBox = styled.div`
   height: 340px;
-  background: #ddd url('/images/ticket/titleimage.png') center/cover no-repeat;
+  background: #ddd url("/images/ticket/titleimage.png") center/cover no-repeat;
   display: grid;
   align-content: end;
   padding: 24px 16px;
-  gap: 10px;
+  gap: 8px;
+  text-align: center;
 `;
 
 export const Venue = styled.div`
   font-size: 14px;
   color: #f0f0f0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
 `;
 
 export const Title = styled.h1`
@@ -30,12 +35,14 @@ export const Title = styled.h1`
   font-weight: 900;
   font-size: 28px;
   line-height: 1.24;
+  text-align: center;
 `;
 
 export const Subtitle = styled.p`
   margin: 0;
   color: #eee;
   font-size: 16px;
+  text-align: center;
 `;
 
 export const PriceSection = styled.section`
@@ -62,14 +69,18 @@ export const PriceSmall = styled.div`
 
 export const Dday = styled.div`
   color: #ff8a00;
-  font-weight: 700;
+  font-weight: 400;
 `;
 
 export const ActionWrap = styled.div`
-  position: sticky;
-  bottom: var(--safe-bottom);
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
   padding: 16px 16px;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: saturate(120%) blur(2px);
+  z-index: 1000;
 `;
 
 export const TabsWrap = styled.div`
@@ -78,33 +89,37 @@ export const TabsWrap = styled.div`
   width: 100%;
   padding: 12px 16px;
   place-items: center;
-  background: var(--W, #FBFBFB);
+  background: var(--W, #fbfbfb);
   gap: 0;
   margin: 0 auto;
 `;
 
 export const TabButton = styled.button`
-  background: none;
+  background: #fbfbfb;
   border: 0;
   padding: 8px 0;
   font-size: 20px;
   font-weight: 800;
-  color: ${(p) => (p.$active ? '#111' : '#777')};
-  border-bottom: 2px solid ${(p) => (p.$active ? '#ff7d0a' : 'transparent')};
+  color: ${(p) => (p.$active ? "#111" : "#777")};
+  border-bottom: 2px solid ${(p) => (p.$active ? "#ff7d0a" : "transparent")};
   width: 100%;
   text-align: center;
 `;
 
 export const TabContentHeader = styled.div`
   display: flex;
-  padding: 24px 16px 12px 16px;
+  padding: 14px 16px 8px 16px;
   align-items: center;
   gap: 100px;
   align-self: stretch;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   line-height: 140%;
   letter-spacing: -0.5px;
+  position: sticky;
+  top: 96px;
+  background: #fbfbfb;
+  z-index: 2;
 `;
 
 export const GuideImage = styled.img`
@@ -134,7 +149,8 @@ export const GuideBadge = styled.span`
   color: #111;
   border-radius: 8px;
   padding: 4px 12px;
-  font-weight: 700;
+  font-weight: 400;
+  font-size: 12px;
   white-space: nowrap;
   margin-top: 2px;
 `;
@@ -143,6 +159,8 @@ export const GuideDesc = styled.div`
   display: block;
   color: #111;
   line-height: 1.6;
+  font-size: 12px;
+  font-weight: 400;
 `;
 
 // Artist carousel
@@ -159,6 +177,7 @@ export const ArtistCarousel = styled.div`
   &::-webkit-scrollbar 
     display: none;
   }
+  touch-action: pan-x;
 `;
 
 export const ArtistCard = styled.button`
@@ -185,9 +204,11 @@ export const CardVideo = styled.video`
 
 export const CardCaption = styled.div`
   position: absolute;
-  left: 12px; right: 12px; bottom: 12px;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
   color: #fff;
-  text-shadow: 0 2px 8px rgba(0,0,0,.5);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   font-weight: 800;
 `;
 
@@ -218,7 +239,7 @@ export const GuideInfoRow = styled.div`
 export const TopBar = styled.div`
   display: flex;
   width: 100%;
-    height: 96px;
+  height: 96px;
   padding: 0 16px;
   justify-content: space-between;
   align-items: center;
@@ -226,21 +247,33 @@ export const TopBar = styled.div`
   top: 0;
   left: 0;
   z-index: 50;
+  background: #fff;
 `;
 
 export const TopBtn = styled.button`
-  width: 28px; height: 28px; border: 0; background: transparent;
-  background-image: url(${(p)=> p.$src || 'none'});
-  background-repeat: no-repeat; background-position: center; background-size: contain;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  background-image: url(${(p) => p.$src || "none"});
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 `;
 
 export const AssignBtn = styled.button`
-  width: 28px; height: 28px; border: 0; background: transparent;
-  background-image: url(${(p)=> p.$src || 'none'});
-  background-repeat: no-repeat; background-position: center; background-size: contain;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  background-image: url(${(p) => p.$src || "none"});
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 `;
 
 export const TopTitle = styled.div`
-  text-align: center; font-weight: 800; font-size: 18px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 18px;
 `;
-

@@ -5,7 +5,9 @@ import api from "@/app/_lib/axios";
 function toAbsoluteUrl(url) {
   if (!url) return url;
   if (/^https?:\/\//i.test(url)) return url;
-  const base = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE) || "https://zanchi.duckdns.org";
+  const base =
+    (typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_BASE) ||
+    "https://zanchi.duckdns.org";
   const baseTrimmed = base.replace(/\/+$/, "");
   const pathTrimmed = String(url).replace(/^\/+/, "");
   return `${baseTrimmed}/${pathTrimmed}`;
@@ -17,14 +19,14 @@ export async function uploadClip({ file, caption }) {
   if (file) form.append("video", file, file.name || "upload.mp4");
   form.append("caption", caption ?? "");
   // 클립 업로드는 전역 JSON 헤더를 덮어쓰고 multipart/form-data로 전송
-  const { data } = await api.post("/api/clips", form, { headers: { "Content-Type": "multipart/form-data" } });
+  const { data } = await api.post("/api/clips", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return data;
 }
 
-
-
 // 클립 전체 조회(피드가 아닌 모든 클립 리스트; 엔드포인트는 /api/clips 로 가정)
-export async function getClips({ page = 0, size = 20 } = {}) {
+export async function getClips({ page = 0, size = 3 } = {}) {
   const { data } = await api.get(`/api/clips/feed`, { params: { page, size } });
   const items = (data?.content || data || []).map((c) => ({
     id: c.clipId ?? c.id,
@@ -50,7 +52,9 @@ export async function getClips({ page = 0, size = 20 } = {}) {
 
 // 내가 팔로우 중인 사람들의 클립 (팔로잉 탭)
 export async function getFollowingClips({ page = 0, size = 10 } = {}) {
-  const { data } = await api.get(`/api/me/following/clips`, { params: { page, size } });
+  const { data } = await api.get(`/api/me/following/clips`, {
+    params: { page, size },
+  });
   const items = (data?.content || []).map((c) => ({
     id: c.id,
     src: toAbsoluteUrl(c.videoUrl),
@@ -95,5 +99,3 @@ export async function unsaveClip(clipId) {
   const res = await api.delete(`/api/clips/${clipId}/save`);
   return res.status; // 204 expected
 }
-
-

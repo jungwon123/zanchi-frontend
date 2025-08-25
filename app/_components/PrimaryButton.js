@@ -14,12 +14,11 @@ const Base = styled.button`
   font-size: 18px;
   font-weight: 700;
   color: #fff;
-  background: ${(p) => (p.disabled ? "var(--sub, #FFDAB8)" : "var(--main, #FF7D0A)")};
+  background: ${(p) =>
+    p.disabled ? "var(--sub, #FFDAB8)" : "var(--main, #FF7D0A)"};
   cursor: ${(p) => (p.disabled ? "default" : "pointer")};
 `;
 
 export default function PrimaryButton({ children, ...props }) {
   return <Base {...props}>{children}</Base>;
 }
-
-

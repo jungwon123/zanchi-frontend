@@ -6,80 +6,139 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 const Container = styled.div`
-  min-height: 100svh; background: #fff; color: #111;
+  min-height: 100svh;
+  background: #fff;
+  color: #111;
 `;
 const TopBar = styled.div`
-  display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #f0f0f0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
 `;
 const BackBtn = styled.button`
-  width: 28px; height: 28px; border: 0; background: transparent; background-image: url('/icon/back.png'); background-position: center; background-repeat: no-repeat; background-size: contain;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  background-image: url("/icon/back.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
 `;
 const Title = styled.div`
-  font-weight: 900; font-size: 18px;
+  font-weight: 900;
+  font-size: 18px;
 `;
 
 const DayTitle = styled.div`
-  padding: 16px; font-weight: 900; color: #333; font-size: 16px;
+  padding: 16px;
+  font-weight: 900;
+  color: #333;
+  font-size: 16px;
 `;
 
 const ItemRow = styled.div`
-  display: grid; grid-template-columns: 86px 1fr; gap: 12px; padding: 12px 16px;
+  display: grid;
+  grid-template-columns: 86px 1fr;
+  gap: 12px;
+  padding: 12px 16px;
 `;
 const Thumb = styled.div`
-  width: 86px; height: 86px; border-radius: 14px; overflow: hidden; background: #FF7D0A;
-  display: grid; place-items: center;
+  width: 86px;
+  height: 86px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ff7d0a;
+  display: grid;
+  place-items: center;
 `;
 const Summary = styled.div`
-  display: grid; gap: 8px;
+  display: grid;
+  gap: 0px;
 `;
 const TitleLine = styled.div`
-  font-weight: 900; font-size: 20px; line-height: 1.3;
+  font-weight: 900;
+  font-size: 20px;
+  line-height: 1.3;
 `;
 const MetaLine = styled.div`
-  display: grid; grid-template-columns: 20px 1fr; gap: 8px; align-items: center; color: #111;
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 8px;
+  align-items: center;
+  color: #111;
 `;
 const MetaIcon = styled.span`
-  width: 20px; height: 20px; display: inline-block; background: url(${(p)=>p.$src || 'none'}) center/contain no-repeat;
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  background: url(${(p) => p.$src || "none"}) center/contain no-repeat;
 `;
 const Section = styled.div`
-  display: grid; grid-template-columns: 1fr auto; gap: 6px; padding: 8px 16px 18px 16px; color: #888;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  padding: 8px 16px 18px 16px;
+  color: #888;
 `;
 const Label = styled.div``;
 const Price = styled.div``;
 
 export default function PaymentHistoryPage() {
   const router = useRouter();
+  const [showDone, setShowDone] = React.useState(false);
+  React.useEffect(() => {
+    // 결제 성공 페이지에서만 ?from=success=true 파라미터로 진입하도록 처리 가능
+    const sp = new URLSearchParams(window.location.search);
+    setShowDone(sp.get("from") === "success");
+  }, []);
 
   // 데모 데이터
-  const days = ['2025.08.06','2025.08.06','2025.08.06'];
-  const list = new Array(3).fill(0).map((_,i)=> ({
-    id: i+1,
-    title: '제목제목제목제목제목',
-    date: i===0 ? '2025.08.24(월) 14:00' : '2025.00.00(토) 00:00',
-    place: i===0 ? '떼아뜨르 다락 소극장' : '00 소극장 2층 2관',
-    item: 20000, point: 15000, total: 5000,
+  const days = ["2025.08.06", "2025.08.06", "2025.08.06"];
+  const list = new Array(3).fill(0).map((_, i) => ({
+    id: i + 1,
+    title: "제목제목제목제목제목",
+    date: i === 0 ? "2025.08.24(월) 14:00" : "2025.00.00(토) 00:00",
+    place: i === 0 ? "떼아뜨르 다락 소극장" : "00 소극장 2층 2관",
+    item: 20000,
+    point: 15000,
+    total: 5000,
   }));
 
   return (
     <Container>
       <TopBar>
-        <BackBtn onClick={()=> router.back()} />
+        <BackBtn onClick={() => router.back()} />
         <Title>결제 내역</Title>
       </TopBar>
 
-      {days.map((day, idxDay)=> (
+      {days.map((day, idxDay) => (
         <div key={`d${idxDay}`}>
           <DayTitle>{day}</DayTitle>
-          {list.map((it)=> (
+          {list.map((it) => (
             <>
               <ItemRow key={`i${idxDay}-${it.id}`}>
                 <Thumb>
-                  <Image src="/images/ticket/poster.png" alt="thumb" width={86} height={86} />
+                  <Image
+                    src="/images/ticket/poster.png"
+                    alt="thumb"
+                    width={86}
+                    height={86}
+                  />
                 </Thumb>
                 <Summary>
                   <TitleLine>{it.title}</TitleLine>
-                  <MetaLine><MetaIcon $src="/icon/calendar.png" /><div>{it.date}</div></MetaLine>
-                  <MetaLine><MetaIcon $src="/icon/point.png" /><div>{it.place}</div></MetaLine>
+                  <MetaLine>
+                    <MetaIcon $src="/icon/calendar.png" />
+                    <div>{it.date}</div>
+                  </MetaLine>
+                  <MetaLine>
+                    <MetaIcon $src="/icon/point.png" />
+                    <div>{it.place}</div>
+                  </MetaLine>
                 </Summary>
               </ItemRow>
               <Section>
@@ -93,7 +152,7 @@ export default function PaymentHistoryPage() {
                 <Label>포인트 사용</Label>
                 <Price>{it.point.toLocaleString()}원</Price>
               </Section>
-              <Section style={{paddingBottom: 24}}>
+              <Section style={{ paddingBottom: 24 }}>
                 <Label>총 결제 금액</Label>
                 <Price>{it.total.toLocaleString()}원</Price>
               </Section>
@@ -101,8 +160,35 @@ export default function PaymentHistoryPage() {
           ))}
         </div>
       ))}
+      {showDone && (
+        <div
+          style={{
+            position: "fixed",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            padding: 16,
+            background: "#fff",
+            boxShadow: "0 -8px 24px rgba(0,0,0,0.04)",
+            paddingBottom: "calc(16px + var(--safe-bottom))",
+          }}
+        >
+          <button
+            onClick={() => router.push("/clip")}
+            style={{
+              width: "100%",
+              height: 48,
+              borderRadius: 999,
+              border: 0,
+              background: "#000",
+              color: "#fff",
+              fontWeight: 800,
+            }}
+          >
+            완료
+          </button>
+        </div>
+      )}
     </Container>
   );
 }
-
-
