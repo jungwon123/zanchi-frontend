@@ -56,7 +56,7 @@ import {
 } from "../_api/hotplroute";
 
 export default function HotplRouteScreen() {
-  const [view, setView] = useState("start"); // 'start' | 'venue' | 'with' | 'mobility' | 'category' | 'saves'
+  const [view, setView] = useState("start");
   const [selected, setSelected] = useState({
     venue: null,
     with: null,
@@ -65,9 +65,9 @@ export default function HotplRouteScreen() {
     sub: new Set(),
   });
   const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(0); // 0~100
+  const [progress, setProgress] = useState(0);
   const [loadingStep, setLoadingStep] = useState(0);
-  const [result, setResult] = useState(null); // 로딩 완료 후 결과 존재
+  const [result, setResult] = useState(null);
   const [saves, setSaves] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("hotpl_saves") || "[]");
@@ -112,7 +112,7 @@ export default function HotplRouteScreen() {
     차: 6000,
   };
 
-  // URL-safe Base64 (백엔드가 Base64.getUrlDecoder() 쓰므로 맞춰줌)
+  // URL-safe Base64 (백엔드가 Base64.getUrlDecoder() 사용)
   const toBase64Id = (name, lat, lng) => {
     try {
       const raw = `${name}|${(+lat).toFixed(6)}|${(+lng).toFixed(6)}`;
@@ -169,8 +169,10 @@ export default function HotplRouteScreen() {
     먹을거리: null,
   };
 
+  // 태그 → 키워드/의도
   const deriveKeywords = (sel) => {
     const tags = Array.from(sel.sub).map((s) => s.split("|")[1]);
+
     const midTags = tags.filter((t) =>
       [
         "전시",
@@ -188,27 +190,43 @@ export default function HotplRouteScreen() {
     const restTags = tags.filter((t) =>
       ["점심식사", "저녁식사", "브런치"].includes(t)
     );
-    const finalTags = tags.filter((t) => ["카페", "디저트", "술"].includes(t));
+    const finalTags = tags.filter((t) => ["커피", "디저트", "술"].includes(t));
 
     const expand = (t) =>
       Object.prototype.hasOwnProperty.call(TAG_TO_QUERY, t)
         ? TAG_TO_QUERY[t]
         : t;
 
-    const midKeywords = (midTags.length ? midTags : ["전시"])
-      .map(expand)
-      .filter(Boolean);
-    const restaurantKeywords = (
-      restTags.length ? restTags.map(expand) : []
-    ).filter(Boolean);
-    const finalKeywords = (finalTags.length ? finalTags : ["카페"])
+    // 기본 mid 키워드: '쉴거리'나 자연/산책로가 있으면 산책 위주, 아니면 전시
+    const preferWalkBase =
+      sel.categories.has("쉴거리") ||
+      tags.includes("자연") ||
+      tags.includes("산책로");
+    const midDefault = preferWalkBase ? ["산책로", "자연"] : ["전시"];
+    const midKeywords = (midTags.length ? midTags : midDefault)
       .map(expand)
       .filter(Boolean);
 
-    const what =
-      sel.categories.size > 0 ? Array.from(sel.categories)[0] : "볼거리";
-    const finish = finalTags[0] || "카페";
+    const restaurantKeywords = (
+      restTags.length ? restTags.map(expand) : []
+    ).filter(Boolean);
+
+    // 마무리 기본값: 별도 선택(커피/디저트/술)이 없고 쉼자리를 원하면 '산책'
+    let finish = finalTags[0] || (preferWalkBase ? "산책" : "카페");
+    const finalDefault = finish === "산책" ? ["산책로"] : ["카페"];
+    const finalKeywords = (finalTags.length ? finalTags : finalDefault)
+      .map(expand)
+      .filter(Boolean);
+
+    // 먹을거리 안 골랐으면 undefined (백엔드에 cuisine 안 보냄)
     const cuisine = restTags.length ? "맛집" : undefined;
+
+    const what =
+      sel.categories.size > 0
+        ? Array.from(sel.categories)[0]
+        : preferWalkBase
+        ? "쉴거리"
+        : "볼거리";
 
     return {
       tags,
@@ -261,9 +279,12 @@ export default function HotplRouteScreen() {
           midKeywords,
           restaurantKeywords,
           finalKeywords,
+          finish,
+          cuisine,
         });
       } catch {}
 
+      // 검색: 먹을거리 미선택 시 레스토랑 쿼리는 아예 호출 안 함
       const [midRaw, restRaw, finalRaw] = await Promise.all([
         kakaoSearchByKeywords({
           keywords: midKeywords,
@@ -301,12 +322,12 @@ export default function HotplRouteScreen() {
             ? "dessert"
             : finish === "술"
             ? "bar"
-            : "cafe"
+            : /* 산책 등 */ "activity"
         )
       );
 
-      // 폴백 검색(빈 후보 방지)
-      if (restaurants.length === 0) {
+      // 폴백: 먹을거리 선택한 경우에만 레스토랑 폴백
+      if (restaurants.length === 0 && restaurantKeywords.length > 0) {
         const restFallback = await kakaoSearchByKeywords({
           keywords: ["맛집 OR 식당"],
           lat: start.lat,
@@ -318,6 +339,8 @@ export default function HotplRouteScreen() {
           normalize(p, "restaurant")
         );
       }
+
+      // 파이널 폴백: finish에 맞춰 검색
       if (finals.length === 0) {
         const finFallback = await kakaoSearchByKeywords({
           keywords: [
@@ -325,6 +348,8 @@ export default function HotplRouteScreen() {
               ? "카페"
               : finish === "디저트"
               ? "디저트 카페 OR 베이커리"
+              : finish === "산책"
+              ? "공원 OR 산책로"
               : "와인바 OR 칵테일바 OR 포차",
           ],
           lat: start.lat,
@@ -335,7 +360,13 @@ export default function HotplRouteScreen() {
         finals = (finFallback || []).map((p) =>
           normalize(
             p,
-            finish === "카페" ? "cafe" : finish === "디저트" ? "dessert" : "bar"
+            finish === "카페"
+              ? "cafe"
+              : finish === "디저트"
+              ? "dessert"
+              : finish === "산책"
+              ? "activity"
+              : "bar"
           )
         );
       }
@@ -348,7 +379,7 @@ export default function HotplRouteScreen() {
         startLat: start.lat,
         startLng: start.lng,
         what,
-        ...(cuisine ? { cuisine } : {}),
+        ...(cuisine ? { cuisine } : {}), // 먹을거리 고른 경우만 전송
         finish,
         tags,
         seed,
@@ -745,6 +776,7 @@ export default function HotplRouteScreen() {
                     </ButtonsRow>
                   </div>
                 ))}
+
               <BottomBar>
                 <PrimaryButton
                   disabled={selected.sub.size === 0 || selected.sub.size > 4}
@@ -814,7 +846,10 @@ export default function HotplRouteScreen() {
                   if (!meta || !meta.payload || !meta.plan)
                     throw new Error("저장할 코스가 없습니다.");
 
-                  const steps = (meta.plan.steps || []).map((s, idx) => ({
+                  // 보강된 스텝 우선 저장
+                  const srcSteps =
+                    meta.planEnrichedSteps || meta.plan.steps || [];
+                  const steps = srcSteps.map((s, idx) => ({
                     label: String.fromCharCode(65 + idx),
                     id: s.id,
                     role: s.role,
