@@ -7,7 +7,13 @@ export async function kakaoSearch(params = {}) {
 }
 
 // 여러 키워드로 병렬 검색 후 합치기
-export async function kakaoSearchByKeywords({ keywords = [], lat, lng, radius, size = 10 }) {
+export async function kakaoSearchByKeywords({
+  keywords = [],
+  lat,
+  lng,
+  radius,
+  size = 10,
+}) {
   const unique = new Map();
   const searches = keywords
     .filter(Boolean)
@@ -39,7 +45,19 @@ export async function saveRoute(payload) {
 // 저장한 코스 목록
 export async function getRoutes() {
   const { data } = await api.get("/api/me/routes");
-  return Array.isArray(data) ? data : [];
+  const list = Array.isArray(data) ? data : [];
+  // tags 필드 정규화: 문자열/undefined → 문자열 배열
+  return list.map((r) => ({
+    ...r,
+    tags: Array.isArray(r?.tags)
+      ? r.tags
+      : typeof r?.tags === "string"
+      ? r.tags
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [],
+  }));
 }
 
 // 저장한 코스 단건
@@ -47,5 +65,3 @@ export async function getRoute(id) {
   const { data } = await api.get(`/api/me/routes/${encodeURIComponent(id)}`);
   return data;
 }
-
-

@@ -464,7 +464,7 @@ export default function HotplRouteScreen() {
   const subMap = {
     볼거리: ["전시", "자연", "시장", "지역문화"],
     놀거리: ["지역문화", "공방"],
-    쉴거리: ["공원", "도서관", "카페"],
+    쉴거리: ["공원", "도서관"],
     먹을거리: ["점심식사", "저녁식사", "브런치", "커피", "디저트", "술"],
   };
 
@@ -609,10 +609,27 @@ export default function HotplRouteScreen() {
               if (saving) return;
               setSaving(true);
               const meta = result && result.meta;
-              if (!meta || !meta.payload || !meta.plan)
-                throw new Error("저장할 코스가 없습니다.");
-              const srcSteps = meta.planEnrichedSteps || meta.plan.steps || [];
-              const steps = srcSteps.map((s, idx) => ({
+              if (!meta) throw new Error("저장할 코스가 없습니다.");
+              const srcSteps =
+                meta.planEnrichedSteps || (meta.plan && meta.plan.steps) || [];
+              const fallbackFromItems = !srcSteps.length
+                ? (result.items || []).map((it, idx) => ({
+                    label: String.fromCharCode(65 + idx),
+                    id: it.id,
+                    role: it.role,
+                    name: it.title,
+                    address: it.addr,
+                    lat: it.lat ?? 0,
+                    lng: it.lng ?? 0,
+                    externalUrl: it.externalUrl,
+                    mapLink: it.mapLink,
+                    rating: it.rating,
+                    ratingCount: it.ratingCount,
+                  }))
+                : null;
+              const steps = (
+                srcSteps.length ? srcSteps : fallbackFromItems
+              ).map((s, idx) => ({
                 label: String.fromCharCode(65 + idx),
                 id: s.id,
                 role: s.role,
@@ -627,24 +644,23 @@ export default function HotplRouteScreen() {
               }));
               const payload = {
                 title: dateText,
-                companion: meta.payload.companion,
-                mobility: meta.payload.mobility,
-                startName: meta.payload.startName,
-                startLat: meta.payload.startLat,
-                startLng: meta.payload.startLng,
-                tags: meta.payload.tags,
-                totalTravelMinutes: meta.plan.totalTravelMinutes,
-                explain: meta.plan.explain,
+                companion: meta.payload?.companion,
+                mobility: meta.payload?.mobility,
+                startName: meta.payload?.startName,
+                startLat: meta.payload?.startLat,
+                startLng: meta.payload?.startLng,
+                tags: meta.payload?.tags,
+                totalTravelMinutes: meta.plan?.totalTravelMinutes,
+                explain: meta.plan?.explain,
                 steps,
               };
+              try {
+                console.log("[saveRoute] payload", payload);
+              } catch {}
               await saveRoute(payload);
-              const btn = document.activeElement;
-              if (btn) btn.textContent = "저장완료";
-              setTimeout(() => {
-                setResult(null);
-                setView("start");
-                if (btn) btn.textContent = "저장하기";
-              }, 900);
+              // 저장 완료 후 즉시 초기 화면으로 복귀
+              setResult(null);
+              setView("start");
             } catch (e) {
               console.error(e);
               alert("로그인이 필요하거나 저장에 실패했습니다.");

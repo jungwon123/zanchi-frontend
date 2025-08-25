@@ -27,7 +27,7 @@ export const BackBtn = styled.button`
   background: transparent;
   font-size: 18px;
   color: #111;
-  z-index: 10;
+  z-index: 9999;
   background-image: url("/icon/back.png");
   background-repeat: no-repeat;
   background-position: center;
