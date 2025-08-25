@@ -7,6 +7,7 @@ import PrimaryButton from "@/app/_components/PrimaryButton";
 import { useQuery } from "@tanstack/react-query";
 import { getRankingClips } from "@/app/_api/ranking";
 import HlsPlayer from "@/app/clip/_components/HlsPlayer";
+import { toAbsoluteUrl } from "@/app/_lib/url";
 
 const Wrap = styled.div`
   min-height: 100svh; background: #fff; color: #111; display:  auto auto 1fr auto;
@@ -156,7 +157,7 @@ export default function RankingPage(){
                   </div>
                 </Media>
                 <AvatarRow>
-                  <AvatarImg src={u.avatarUrl || '/icon/default.png'} alt="profile" />
+                  <AvatarImg src={toAbsoluteUrl(u.avatarUrl) || '/icon/default.png'} alt="profile" />
                 </AvatarRow>
                 <Name>{u.name}</Name>
                 <Handle>{u.handle}</Handle>
@@ -171,7 +172,7 @@ export default function RankingPage(){
         {others.map((u, i)=> (
           <Row key={u.id} onClick={()=> openClip(u.clipId, u.uploaderId)}>
             <RankNum>{i+4}</RankNum>
-            <SmallThumb src={u.avatarUrl || '/icon/default.png'} alt="" />
+            <SmallThumb src={toAbsoluteUrl(u.avatarUrl) || '/icon/default.png'} alt="" />
             <Col>
               <div style={{fontWeight:800}}>{u.name}</div>
               <div style={{opacity:.7}}>{u.handle}</div>
@@ -190,7 +191,7 @@ export default function RankingPage(){
           <PopPodium>
             {top3.map((u, idx)=> (
               <div key={`p${u.id}`} style={{display:'grid', placeItems:'center', gap:6}}>
-                <SmallThumb src={u.avatarUrl || '/icon/default.png'} alt="" style={{width:64, height:64, borderRadius:32}} />
+                <SmallThumb src={toAbsoluteUrl(u.avatarUrl) || '/icon/default.png'} alt="" style={{width:64, height:64, borderRadius:32}} />
                 <div style={{fontWeight:800}}>{u.name}</div>
                 <div style={{opacity:.7}}>{u.handle}</div>
               </div>

@@ -48,7 +48,7 @@ export const HeaderActions = styled.div`
 `;
 export const HeaderLeft = styled.div`
   position: absolute;
-  left: 0;
+  left: -2px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;

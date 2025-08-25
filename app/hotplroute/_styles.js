@@ -4,7 +4,7 @@ import styled, { css } from "styled-components";
 
 export const Screen = styled.div`
   min-height: 100svh;
-  background: #fff;
+  background: #FBFBFB;
   color: #111;
 `;
 
@@ -24,8 +24,27 @@ export const BackBtn = styled.button`
 
 export const ClipBtn = styled.button`
   position: absolute; right: 16px; top: 10px;
-  height: 44px; padding: 0 12px; border-radius: 12px; border: 0; background: #fff; box-shadow: 0 6px 16px rgba(0,0,0,.08);
-  display: grid; grid-auto-flow: column; align-items: center; gap: 8px;
+  width: 96px; height: 64px; border-radius: 20px; border: 0;
+  background: transparent;
+  background-image: url('/icon/goclip.png');
+  background-repeat: no-repeat; background-position: center; background-size: contain;
+  box-shadow: 0 6px 16px rgba(0,0,0,.08);
+`;
+
+
+export const ClipImg = styled.button`
+  position: absolute; right: 0px; top: 10px;
+
+  width: 42px;
+  height: 58px;
+  border: 0;
+  padding: 0;
+  background-color: transparent;
+  background-image: url(${(p) => p.$src || "none"});
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  cursor: pointer;
 `;
 
 export const ClipIcon = styled.span`
@@ -37,7 +56,7 @@ export const TitleCenter = styled.div`
 `;
 
 export const Main = styled.main`
-  padding: 0 16px 120px;
+  padding: 150px 16px 16px;
   ${(p) => p.$center && css`display: grid; justify-items: center;`}
 `;
 
@@ -47,7 +66,7 @@ export const IntroText = styled.div`
 `;
 
 export const Illustration = styled.div`
-  width: 280px; height: 280px; background-image: url('/images/tutorial/tutorial2.svg'); background-repeat: no-repeat; background-position: center; background-size: contain; filter: drop-shadow(0 12px 24px rgba(0,0,0,.06));
+  width: 280px; height: 280px; background-image: url('/images/hotplroute/ai.png'); background-repeat: no-repeat; background-position: center; background-size: contain; );
 `;
 
 export const BottomActions = styled.div`
@@ -68,14 +87,14 @@ export const BottomBar = styled.div`
 
 // Loading overlay
 export const LoaderWrap = styled.div`
-  position: fixed; inset: 0; background: #fff; z-index: 200;
-  display: grid; align-content: start; justify-items: center; gap: 24px; padding-top: 64px;
+  position: fixed; inset: 0; background: #fbfbfb; z-index: 200;
+  display: grid; align-content: start; justify-items: center; gap: 24px; padding-top: 0;
 `;
 export const LoaderLogo = styled.div`
   font-weight: 900; font-size: 22px; color: #ff8a00;
 `;
 export const LoaderIcon = styled.div`
-  width: 120px; height: 120px; background-image: url('/icon/loading.svg'); background-repeat: no-repeat; background-position: center; background-size: contain; margin-top: 24px;
+  width: 120px; height: 120px; background-image: url('/images/hotplroute/loading.png'); background-repeat: no-repeat; background-position: center; background-size: contain; margin-top: 24px;
 `;
 export const LoaderText = styled.div`
   margin-top: 12px; font-size: 18px; font-weight: 600; text-align: center; color: #111;

@@ -115,7 +115,7 @@ export default function SearchPage() {
                   <PlayBadge>{v.viewCount ?? 0} ▶</PlayBadge>
                 </Thumb>
                 <MetaRow>
-                  <Avatar />
+                  <Avatar style={{ backgroundImage: v.avatarUrl ? `url(${toAbsoluteUrl(v.avatarUrl)})` : undefined, backgroundSize:'cover' }} />
                   <MetaText>
                     <strong>{v.authorName}</strong>
                     <span>@u{v.uploaderId}</span>
@@ -137,7 +137,7 @@ export default function SearchPage() {
                 <AccountsList>
                   {(memberRes?.content || []).map((u)=> (
                     <AccountItem key={u.id} onClick={() => router.push(`/profile?userId=${u.id}`)}>
-                      <AccountAvatar style={{ backgroundImage: u.avatarUrl ? `url(${u.avatarUrl})` : undefined, backgroundSize:'cover' }} />
+                      <AccountAvatar style={{ backgroundImage: u.avatarUrl ? `url(${toAbsoluteUrl(u.avatarUrl)})` : `url(/icon/default.png)`, backgroundSize:'cover' }} />
                       <AccountText>
                         <strong>{u.name}</strong>
                         <span>@{u.loginId}</span>
@@ -167,7 +167,7 @@ export default function SearchPage() {
                           <PlayBadge>{c.viewCount} ▶</PlayBadge>
                         </Thumb>
                         <MetaRow>
-                          <Avatar />
+                          <Avatar style={{ backgroundImage: c.avatarUrl ? `url(${toAbsoluteUrl(c.avatarUrl)})` : undefined, backgroundSize:'cover' }} />
                           <MetaText>
                             <strong>{c.authorName}</strong>
                             <span>@u{c.uploaderId}</span>

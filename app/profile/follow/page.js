@@ -79,6 +79,15 @@ function FollowListInner() {
   const following = (followingData?.content || []).map(u => ({ id: u.id, nick: u.name || u.loginId, handle: u.loginId, avatar: u.avatarUrl }));
   const data = (tab==='followers' ? followers : following).filter(u => (u.nick||'').includes(q) || (u.handle||'').includes(q));
 
+  const toAbsoluteUrl = (url) => {
+    if (!url) return url;
+    if (/^https?:\/\//i.test(url)) return url;
+    const base = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE) || "https://zanchi.duckdns.org";
+    const baseTrimmed = base.replace(/\/+$/, "");
+    const pathTrimmed = String(url).replace(/^\/+/, "");
+    return `${baseTrimmed}/${pathTrimmed}`;
+  };
+
   return (
     <Container>
       <TopBar>
@@ -101,7 +110,7 @@ function FollowListInner() {
       <List>
         {data.map((u)=> (
           <Item key={u.id} onClick={()=> router.push(`/profile?userId=${u.id}`)}>
-            <Avatar style={{ backgroundImage: u.avatar ? `url(${u.avatar})` : undefined, backgroundSize:'cover', backgroundPosition:'center' }} />
+            <Avatar style={{ backgroundImage: u.avatar ? `url(${toAbsoluteUrl(u.avatar)})` : `url(/icon/default.png)`, backgroundSize:'cover', backgroundPosition:'center' }} />
             <NameWrap>
               <Nick>{u.nick}</Nick>
               <Handle>@{u.handle}</Handle>
