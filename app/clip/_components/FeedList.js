@@ -24,8 +24,11 @@ export default function FeedList() {
       tab === "following"
         ? getFollowingClips({ page: pageParam, size: 3 })
         : getClips({ page: pageParam, size: 3 }),
-    getNextPageParam: (lastPage, pages) =>
-      lastPage?.last ? undefined : pages.length,
+    getNextPageParam: (lastPage, pages) => {
+      const pageSize = lastPage?.pageable?.pageSize ?? 3;
+      const count = Array.isArray(lastPage?.items) ? lastPage.items.length : 0;
+      return count < pageSize ? undefined : pages.length;
+    },
     staleTime: 60_000,
   });
 
@@ -35,21 +38,24 @@ export default function FeedList() {
   );
 
   const loadMoreRef = useRef(null);
+  const nearEndRef = useRef(null);
   useEffect(() => {
-    const el = loadMoreRef.current;
-    if (!el) return;
+    const targets = [loadMoreRef.current, nearEndRef.current].filter(Boolean);
+    if (targets.length === 0) return;
     const io = new IntersectionObserver(
       (entries) => {
-        const [e] = entries;
-        if (e.isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
+        for (const e of entries) {
+          if (e.isIntersecting && hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+            break;
+          }
         }
       },
-      { root: null, rootMargin: "240px 0px", threshold: 0.1 }
+      { root: null, rootMargin: "600px 0px", threshold: 0.1 }
     );
-    io.observe(el);
+    targets.forEach((t) => io.observe(t));
     return () => io.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, items.length]);
 
   if (isLoading) return <div style={{ color: "#999" }}>로딩중…</div>;
   if (isError) return <div style={{ color: "#f66" }}>에러가 발생했습니다.</div>;
@@ -73,26 +79,30 @@ export default function FeedList() {
         }
       }}
     >
-      {items.map((item, idx) => (
-        <div
-          key={`${item.id ?? idx}-${idx}`}
-          style={{ scrollSnapAlign: "start" }}
-        >
-          <FeedItem
-            index={idx}
-            src={item.src}
-            clipId={item.id}
-            authorName={item.authorName}
-            caption={item.caption}
-            uploaderId={item.uploaderId}
-            uploaderAvatarUrl={item.uploaderAvatarUrl}
-            likes={item.likeCount}
-            comments={item.commentCount}
-            liked={item.liked}
-            savedInitial={item.saved}
-          />
-        </div>
-      ))}
+      {items.map((item, idx) => {
+        const isNearEnd = idx === Math.max(0, items.length - 3);
+        return (
+          <div
+            key={`${item.id ?? idx}-${idx}`}
+            style={{ scrollSnapAlign: "start" }}
+          >
+            <FeedItem
+              index={idx}
+              src={item.src}
+              clipId={item.id}
+              authorName={item.authorName}
+              caption={item.caption}
+              uploaderId={item.uploaderId}
+              uploaderAvatarUrl={item.uploaderAvatarUrl}
+              likes={item.likeCount}
+              comments={item.commentCount}
+              liked={item.liked}
+              savedInitial={item.saved}
+            />
+            {isNearEnd && <div ref={nearEndRef} style={{ height: 1 }} />}
+          </div>
+        );
+      })}
       <div ref={loadMoreRef} style={{ height: 1 }} />
     </div>
   );

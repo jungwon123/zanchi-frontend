@@ -25,9 +25,11 @@ export async function uploadClip({ file, caption }) {
   return data;
 }
 
-// 클립 전체 조회(피드가 아닌 모든 클립 리스트; 엔드포인트는 /api/clips 로 가정)
+//개인화 추천 알고리즘 api
 export async function getClips({ page = 0, size = 3 } = {}) {
-  const { data } = await api.get(`/api/clips/feed`, { params: { page, size } });
+  const { data } = await api.get(`/api/reco/my-feed`, {
+    params: { page, size },
+  });
   const items = (data?.content || data || []).map((c) => ({
     id: c.clipId ?? c.id,
     src: toAbsoluteUrl(c.videoUrl),
@@ -42,11 +44,12 @@ export async function getClips({ page = 0, size = 3 } = {}) {
     createdAt: c.createdAt,
     uploader: c.uploader ?? { id: c.uploaderId, nickname: c.authorName },
   }));
+  const computedLast = items.length < size;
   return {
     items,
-    pageable: data?.pageable,
+    pageable: data?.pageable ?? { pageNumber: page, pageSize: size },
     totalElements: data?.totalElements ?? items.length,
-    last: data?.last ?? true,
+    last: typeof data?.last === "boolean" ? data.last : computedLast,
   };
 }
 
