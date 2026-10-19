@@ -32,9 +32,13 @@
 | :---: | :---: | :---: |
 | <img src="docs/readme/login.jpg" width="220" /> | <img src="docs/readme/onboarding-tutorial.jpg" width="220" /> | <img src="docs/readme/onboarding-interests.jpg" width="220" /> |
 
-| 숏폼 피드 | 핫플루트 | 알림 | 결제 |
+| 숏폼 피드 | 잔치러 랭킹 | 내 정보 | 클립 올리기 |
 | :---: | :---: | :---: | :---: |
-| <img src="docs/readme/feed.jpg" width="170" /> | <img src="docs/readme/hotplroute.jpg" width="170" /> | <img src="docs/readme/notifications.jpg" width="170" /> | <img src="docs/readme/payment.jpg" width="170" /> |
+| <img src="docs/readme/feed.jpg" width="170" /> | <img src="docs/readme/ranking.jpg" width="170" /> | <img src="docs/readme/profile.jpg" width="170" /> | <img src="docs/readme/upload.jpg" width="170" /> |
+
+| 예매하기 | 결제 | 핫플루트 | 알림 |
+| :---: | :---: | :---: | :---: |
+| <img src="docs/readme/ticket.jpg" width="170" /> | <img src="docs/readme/payment.jpg" width="170" /> | <img src="docs/readme/hotplroute.jpg" width="170" /> | <img src="docs/readme/notifications.jpg" width="170" /> |
 
 ---
 
